@@ -4,13 +4,13 @@
 import pgdb
 
 query = """
-SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id FROM planet_osm_polygon city, planet_osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND city.way_valid AND ST_Within(road.way, city.way)
+SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id FROM osm_polygon city, osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND city.way_valid AND ST_Within(road.way, city.way)
 """
 
 query_all_cities = """
-SELECT city.osm_id AS osm_id, city."cladr:code" AS "cladr:code" FROM planet_osm_polygon city WHERE city.place<>'' AND city."cladr:code" <> ''
+SELECT city.osm_id AS osm_id, city."cladr:code" AS "cladr:code" FROM osm_polygon city WHERE city.place<>'' AND city."cladr:code" <> ''
 UNION
-SELECT city.osm_id AS osm_id, point."cladr:code" AS "cladr:code" FROM planet_osm_polygon city, planet_osm_point point WHERE point."cladr:code" <> '' AND ST_Within(point.way, city.way) AND point.place<>'' AND city.place <> ''
+SELECT city.osm_id AS osm_id, point."cladr:code" AS "cladr:code" FROM osm_polygon city, osm_point point WHERE point."cladr:code" <> '' AND ST_Within(point.way, city.way) AND point.place<>'' AND city.place <> ''
 """
 
 class OSMDB:

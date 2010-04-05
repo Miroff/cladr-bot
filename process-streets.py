@@ -61,17 +61,6 @@ def prepare_name(name):
   
   return name.strip()
 
-def compact(key, name, cladr_code, cladr_name, cladr_suffix, postcode, osm_id = 0): 
-  return {
-        'key': key, 
-        'name': name, 
-        'cladr:code': cladr_code, 
-        'cladr:name': cladr_name,
-        'cladr:suffix': cladr_suffix,
-        'addr:postcode': postcode,
-        'osm_id': osm_id,
-       }
-
 def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user, db_password, dry_run, quiet):
   #Fetch data
   if not quiet: print "Fetching data"
@@ -79,8 +68,8 @@ def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, d
   cladrDB = CladrDB(db_host, db_port, db_name, db_user, db_password, quiet)
   osmDB = OSMDB(db_host, db_port, db_name, db_user, db_password, quiet)
 
-  (cladr_by_name, cladr_by_code) = cladrDB.load_data( prepare_name, compact, city_cladr_code)
-  (osm_data, osm_by_code) = osmDB.load_data( prepare_name, compact, city_polygon_id)
+  (cladr_by_name, cladr_by_code) = cladrDB.load_data(prepare_name, city_cladr_code)
+  (osm_data, osm_by_code) = osmDB.load_data(prepare_name, city_polygon_id)
 
   cladrDB.close()
   osmDB.close()
@@ -119,8 +108,9 @@ if options.city_osm_id == None or options.city_cladr_code == None:
     
     try:
 	  process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
-    except:
-	  print "Died in city #%s (%s)" % (cladr, osm_id)	
+    except Exception as ex:
+	  print "Died in city #%s (%s)" % (cladr, osm_id)
+	  print ex
 
 else:
   process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
