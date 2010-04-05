@@ -109,5 +109,15 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
     
   updater.complete()
   log.close()
-  
-process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
+
+if options.city_osm_id == None or options.city_cladr_code == None:
+  if not options.quiet:
+    print "Processing all cities in region"
+  osmDB = OSMDB(options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
+  for (osm_id, cladr) in osmDB.query_all_cities():
+    if not options.quiet:
+      print "Processing city #%s (%s)" % (cladr, osm_id)
+    process(osm_id, cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
+
+else:
+  process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
