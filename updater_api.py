@@ -24,7 +24,7 @@ class APIUpdater:
 
     if not self.dry_run:
       if not self.quiet:
-        print "Saving data of %s" % COMMENT_STRING
+        print "Saving data"
 
       api = OsmApi.OsmApi(username = self.user.decode("utf-8"), password = self.password.decode("utf-8"))
       api.ChangesetCreate({u"comment": COMMENT_STRING})

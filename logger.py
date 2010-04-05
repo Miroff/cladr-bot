@@ -62,7 +62,8 @@ class Logger:
     self.found += 1
   
   def close(self):
-    self.file.write(FOOTER % round(100.0 * self.found / (self.missing + self.found)))
+    if self.missing + self.found > 0:
+      self.file.write(FOOTER % round(100.0 * self.found / (self.missing + self.found)))
     self.file.close()
   
  

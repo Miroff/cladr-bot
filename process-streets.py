@@ -30,8 +30,6 @@ parser.add_option("-d", "--dry-run", action="store_true", dest="dry_run", defaul
 
 (options, args) = parser.parse_args()
 
-updater = APIUpdater(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), options.dry_run, options.quiet)
-
 if not options.quiet:
   print "Read abbreviations"
   
@@ -73,7 +71,7 @@ def compact(key, name, cladr_code, cladr_name, cladr_suffix, postcode, osm_id = 
         'osm_id': osm_id,
        }
 
-def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user, db_password, quiet):
+def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user, db_password, dry_run, quiet):
   #Fetch data
   if not quiet: print "Fetching data"
 
@@ -87,7 +85,7 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
   osmDB.close()
 
   
-  # Init Logger
+  updater = APIUpdater(api_user, api_password, dry_run, quiet)  
   log = Logger('logs/', city_cladr_code)
   if not options.quiet:
     print "Comparing"
@@ -117,7 +115,7 @@ if options.city_osm_id == None or options.city_cladr_code == None:
   for (osm_id, cladr) in osmDB.query_all_cities():
     if not options.quiet:
       print "Processing city #%s (%s)" % (cladr, osm_id)
-    process(osm_id, cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
+    process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
 
 else:
-  process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
+  process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
