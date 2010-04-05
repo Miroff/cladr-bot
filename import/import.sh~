@@ -1,1 +1,0 @@
-time osm2pgsql -l -c -d osm -G -S default.style novosib.osm.bz2
