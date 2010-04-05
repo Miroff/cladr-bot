@@ -1,0 +1,19 @@
+table {
+  width: 100%;
+}
+
+table #state {
+  width: 120pt;
+}
+
+table #code {
+  width: 200pt;
+}
+
+.missing {
+  background-color: red;
+}
+
+.found {
+  background-color: green;
+}
