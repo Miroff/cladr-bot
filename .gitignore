@@ -1,0 +1,6 @@
+*.pyc
+*.*~
+logs/*.html
+base/*
+*.bz2
+*.log
