@@ -27,6 +27,7 @@ parser.add_option("-k", "--api-user", dest="api_user", help="OSM API User")
 parser.add_option("-j", "--api-password", dest="api_password", help=",OSM API password")
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False, help="don't print status messages to stdout")
 parser.add_option("-d", "--dry-run", action="store_true", dest="dry_run", default=False, help="don't do actual changes")
+parser.add_option("-l", "--logs-path", dest="logs_path", help="Path where log files will be stored", default="./logs")
 
 (options, args) = parser.parse_args()
 
@@ -86,7 +87,7 @@ def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, d
 
   
   updater = APIUpdater(api_user, api_password, dry_run, quiet)  
-  log = Logger('logs/', city_cladr_code)
+  log = Logger(options.logs_path, city_cladr_code)
   if not options.quiet:
     print "Comparing"
   for osm in osm_data:
