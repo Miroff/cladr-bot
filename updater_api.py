@@ -56,7 +56,9 @@ class APIUpdater:
   def dump(self):
     if len(self.ways) == 0: return
     
-    if self.dry_run: return
+    if self.dry_run: 
+      self.ways = {}
+      return
     
     ways = self.api.WaysGet(self.ways.keys())
     
