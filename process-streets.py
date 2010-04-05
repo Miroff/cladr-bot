@@ -107,10 +107,10 @@ if options.city_osm_id == None or options.city_cladr_code == None:
       print "Processing city #%s (%s)" % (cladr, osm_id)
     
     try:
-	  process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
+      process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
     except Exception as ex:
-	  print "Died in city #%s (%s)" % (cladr, osm_id)
-	  print ex
+      print "Died in city #%s (%s)" % (cladr, osm_id)
+      print ex
 
 else:
   process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
