@@ -4,7 +4,7 @@
 import pgdb
 
 query = """
-SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id FROM planet_osm_polygon city, planet_osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND ST_Within(road.way, city.way)
+SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id FROM planet_osm_polygon city, planet_osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND city.way_valid AND ST_Within(road.way, city.way)
 """
 
 query_all_cities = """
