@@ -6,7 +6,7 @@
 
 == Prerequisites
 
-Python 2.6.4 с библиотеками pgdb, dbfpy
+Python 2.6.4 с библиотеками pygresql (>4.0), dbfpy
 БД кладр в разархивированном виде
 Дамп базы OSM в PostGIS
 PostgreSQL
