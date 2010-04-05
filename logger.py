@@ -8,7 +8,7 @@ HEADER = """
 <html>
   <head>
     <link media='all' href='main.css' type='text/css' rel='stylesheet' />
-    <title>CLADR proseccing log for #%s</title>
+    <title>CLADR processing log for #%s</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
   </head>
   <body>
