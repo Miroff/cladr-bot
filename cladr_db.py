@@ -58,7 +58,17 @@ class CladrDB:
       if not self.quiet:
         print "Chunk %s\r" % (self.count / CHUNK_SIZE)
         
-  def load_data(self, prepare_name, compact, city_cladr_code):
+  def compact(self, key, name, cladr_code, cladr_name, cladr_suffix, postcode): 
+    return {
+        'key': key, 
+        'name': name, 
+        'cladr:code': cladr_code, 
+        'cladr:name': cladr_name,
+        'cladr:suffix': cladr_suffix,
+        'addr:postcode': postcode,
+       }
+
+  def load_data(self, prepare_name, city_cladr_code):
     cursor = self.connection.cursor()
     cursor.execute(get_cladr_streets_query % pgdb.escape_string(city_cladr_code[0:11]))
     
@@ -77,7 +87,7 @@ class CladrDB:
       short_street_names[key2] += 1
       
       name = street[1] + " " + street[2]
-      data = compact(key, name, street[0], street[1], street[2], street[3], 0)
+      data = self.compact(key, name, street[0], street[1], street[2], street[3])
       
       if key not in cladr_by_name:
         cladr_by_name[key] = data
@@ -97,7 +107,7 @@ class CladrDB:
       del cladr_by_name[street]
 
     return (cladr_by_name, cladr_by_code)
-
+    
   def dump(self):
     cursor = self.connection.cursor()
     cursor.executemany(insert_sql, self.data)

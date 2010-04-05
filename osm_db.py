@@ -4,7 +4,7 @@
 import pgdb
 
 query = """
-SELECT road.name, road."cladr:code", road."cladr:note", road."cladr:name", road."cladr:suffix", road."addr:postcode", road.osm_id FROM planet_osm_polygon city, planet_osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND ST_Within(road.way, city.way)
+SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id FROM planet_osm_polygon city, planet_osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND ST_Within(road.way, city.way)
 """
 
 query_all_cities = """
@@ -20,7 +20,15 @@ class OSMDB:
     self.count = 0
     self.quiet = quiet
 
-  def load_data(self, prepare_name, compact, key):
+  def compact(self, key, name, cladr_code, osm_id): 
+    return {
+        'key': key, 
+        'name': name, 
+        'cladr:code': cladr_code, 
+        'osm_id': osm_id,
+     } 
+
+  def load_data(self, prepare_name, key):
     cursor = self.connection.cursor()
     
     cursor.execute(query % pgdb.escape_string(str(key)))
@@ -29,19 +37,19 @@ class OSMDB:
     osm_by_code = {}
     
     for street in cursor.fetchall():
-      key = street[1]
-      if key not in osm_by_code:
-        osm_by_code[key] = []
-    
       if street[2] != None:
         code = street[2]
       else:
         code = street[1]
 
-      data = compact(prepare_name(street[0]), street[0], code, street[3], street[4], street[5], street[6])
+      if code not in osm_by_code:
+        osm_by_code[code] = []
+
+      data = self.compact(prepare_name(street[0]), street[0], code, street[3])
       osm_by_code[code].append(data)
       osm_data.append(data)
     return (osm_data, osm_by_code)
+    
 
   def query_all_cities(self):
     cursor = self.connection.cursor()

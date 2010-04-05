@@ -21,6 +21,12 @@ class APIUpdater:
 
   def complete(self):
     self.dump()
+    
+    if len(self.data) <= 0:
+      print "No data to be saved"
+      self.data = []       
+      self.ways = {}
+      return;
 
     if not self.dry_run:
       if not self.quiet:
@@ -34,6 +40,9 @@ class APIUpdater:
       
       api.ChangesetClose()
       api.flush()
+    
+    self.data = []       
+    self.ways = {}
     
 
   def update(self, osm_id, cladr_data):
