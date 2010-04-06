@@ -25,7 +25,7 @@ CREATE TABLE cladr (
 
 CREATE INDEX cladr_code_prefix_idx ON cladr (code_prefix, actuality);
 CREATE UNIQUE INDEX cladr_code_idx ON cladr (code);
-CREATE INDEX cladr_okatd_idx IN cladr (okatd);
+CREATE INDEX cladr_okatd_idx ON cladr (okatd);
 CREATE INDEX cladr_actuality_idx ON cladr (actuality);
 """
 
