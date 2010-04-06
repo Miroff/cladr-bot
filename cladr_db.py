@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS cladr;
 
 create_table_sql = """
 CREATE TABLE cladr (
-  code char(17),
+  code varchar(17),
   status char(2),
   name varchar(256),
   type varchar(256),
@@ -25,6 +25,8 @@ CREATE TABLE cladr (
 
 CREATE INDEX cladr_code_prefix_idx ON cladr (code_prefix, actuality);
 CREATE UNIQUE INDEX cladr_code_idx ON cladr (code);
+CREATE INDEX cladr_okatd_idx IN cladr (okatd);
+CREATE INDEX cladr_actuality_idx ON cladr (actuality);
 """
 
 insert_sql = """
