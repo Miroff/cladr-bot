@@ -23,11 +23,12 @@ parser.add_option("-H", "--host", dest="db_host", help="PostgreSQL databse host"
 parser.add_option("-p", "--port", dest="db_port", help="PostgreSQL databse port", type="int", default="-1")
 parser.add_option("-c", "--polygon", dest="city_osm_id", help="OSM ID of city polygon")
 parser.add_option("-o", "--cladr", dest="city_cladr_code", help="CLADR code of city")
-parser.add_option("-k", "--api-user", dest="api_user", help="OSM API User")
-parser.add_option("-j", "--api-password", dest="api_password", help=",OSM API password")
+parser.add_option("-k", "--api-user", dest="api_user", help="OSM API User", default="nobody")
+parser.add_option("-j", "--api-password", dest="api_password", help=",OSM API password", default="none")
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False, help="don't print status messages to stdout")
 parser.add_option("-d", "--dry-run", action="store_true", dest="dry_run", default=False, help="don't do actual changes")
 parser.add_option("-l", "--logs-path", dest="logs_path", help="Path where log files will be stored", default="./logs")
+parser.add_option("-s", '--source-set', dest="source_set", default="oldbot")
 
 (options, args) = parser.parse_args()
 
@@ -98,7 +99,7 @@ def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, d
   updater.complete()
   log.close()
 
-if options.city_osm_id == None or options.city_cladr_code == None:
+if options.source_set == 'oldbot' :
   if not options.quiet:
     print "Processing all cities in region"
   osmDB = OSMDB(options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
@@ -112,5 +113,19 @@ if options.city_osm_id == None or options.city_cladr_code == None:
       print "Died in city #%s (%s)" % (cladr, osm_id)
       print ex
 
-else:
+elif options.source_set == 'oktmo-okato' :
+  if not options.quiet:
+    print "Processing oktmo-okato cities"
+  osmDB = OSMDB(options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
+  for (osm_id, cladr) in osmDB.query_oktmo_okato_settlements():
+    if not options.quiet:
+      print "Processing city #%s (%s)" % (cladr, osm_id)
+    
+    try:
+      process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
+    except Exception as ex:
+      print "Died in city #%s (%s)" % (cladr, osm_id)
+      print ex
+  
+elif options.city_osm_id != None and options.city_cladr_code != None:
   process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)

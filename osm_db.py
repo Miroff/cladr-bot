@@ -13,6 +13,14 @@ UNION
 SELECT city.osm_id AS osm_id, point."cladr:code" AS "cladr:code" FROM osm_polygon city, osm_point point WHERE point."cladr:code" <> '' AND ST_Within(point.way, city.way) AND point.place IN ('city', 'town', 'village', 'hamlet') AND city.place IN ('city', 'town', 'village', 'hamlet')
 """
 
+query_oktmo_okato_settlements = """
+SELECT p.osm_id, c.code
+FROM osm_polygon p 
+  LEFT JOIN cladr c ON okatd = okato_code AND status <> '99' AND c.name = p.name
+WHERE okato_code IS NOT NULL AND c.code IS NOT NULL;
+"""
+
+
 class OSMDB:
   def __init__(self, host, port, database, user, password, quiet):
     self.data = []
@@ -61,6 +69,18 @@ class OSMDB:
       cities.append((city[0], city[1]))
     
     return cities
+
+  def query_oktmo_okato_settlements(self):
+    cursor = self.connection.cursor()
+    cursor.execute(query_oktmo_okato_settlements)
+
+    cities = []
+
+    for city in cursor.fetchall():
+      cities.append((city[0], city[1]))
+    
+    return cities
+
 
   def close(self):
     self.connection.close()  
