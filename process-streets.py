@@ -30,6 +30,7 @@ parser.add_option("-j", "--api-password", dest="api_password", help=",OSM API pa
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False, help="don't print status messages to stdout")
 parser.add_option("-d", "--do-changes", action="store_true", dest="do_changes", default=False, help="Upload changes to OSM")
 parser.add_option("-l", "--logs-path", dest="logs_path", help="Path where log files will be stored", default="./logs")
+parser.add_option("-s", '--source-set', dest="source_set", default="streets")
 
 (options, args) = parser.parse_args()
 
@@ -113,7 +114,8 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
   cladrDB.close()
   osmDB.close()
 
-if options.city_osm_id == None or options.city_cladr_code == None:
+
+if options.source_set == 'streets' :
   if not options.quiet:
     print "Processing all cities in region"
   osmDB = OSMDB(options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
@@ -127,5 +129,19 @@ if options.city_osm_id == None or options.city_cladr_code == None:
       print "Died in city #%s (%s)" % (cladr, osm_id)
       print ex
 
-else:
-  process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
+elif options.source_set == 'oktmo-okato' :
+  if not options.quiet:
+    print "Processing oktmo-okato cities"
+  osmDB = OSMDB(options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
+  for (osm_id, cladr) in osmDB.query_oktmo_okato_settlements():
+    if not options.quiet:
+      print "Processing city #%s (%s)" % (cladr, osm_id)
+    
+    try:
+      process(str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
+    except Exception as ex:
+      print "Died in city #%s (%s)" % (cladr, osm_id)
+      print ex
+  
+elif options.city_osm_id != None and options.city_cladr_code != None:
+  process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
