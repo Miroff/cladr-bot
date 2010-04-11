@@ -11,9 +11,11 @@ from cladr_db import CladrDB
 from osm_db import OSMDB
 from updater_api import APIUpdater
 from updater_osc import OSCUpdater
+from dummy_updater import DummyUpdater
 from logger import Logger
 
 __version__ = u"2.0.4"
+NUMBER_IN_NAMES_REGEX = re.compile(ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ)\s+', re.UNICODE)
 
 parser = OptionParser(usage="%prog [options]", version="%prog " + __version__)
 parser.add_option("-D", "--database", dest="db_name", help="PostgreSQL databse name", default="osm")
@@ -26,15 +28,19 @@ parser.add_option("-o", "--cladr", dest="city_cladr_code", help="CLADR code of c
 parser.add_option("-k", "--api-user", dest="api_user", help="OSM API User")
 parser.add_option("-j", "--api-password", dest="api_password", help=",OSM API password")
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False, help="don't print status messages to stdout")
-parser.add_option("-d", "--dry-run", action="store_true", dest="dry_run", default=False, help="don't do actual changes")
+parser.add_option("-d", "--do-changes", action="store_true", dest="do_changes", default=False, help="Upload changes to OSM")
 parser.add_option("-l", "--logs-path", dest="logs_path", help="Path where log files will be stored", default="./logs")
 
 (options, args) = parser.parse_args()
 
+if options.api_user != None:
+  updater = APIUpdater(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), options.do_changes, options.quiet, __version__)
+else:
+  updater = DummyUpdater(options.quiet)
+
+
 if not options.quiet:
   print "Read abbreviations"
-  
-#TODO: Set required parameters
   
 #Read short names expansion table
 abbrevs = {}
@@ -43,7 +49,6 @@ for line in open('abbrev.txt','r').readlines():
 
   abbrevs[line.split('=')[0]] = line.split('=')[1].rstrip()
   
-number_re = re.compile(ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ)\s+', re.UNICODE)
 def prepare_name(name):
   name = name.decode("utf-8")
   for k, v in abbrevs.iteritems():
@@ -56,12 +61,12 @@ def prepare_name(name):
   
   name = " ".join(words)  
   
-  name = number_re.sub(lambda i: i.group(1) + " ", name)
+  name = NUMBER_IN_NAMES_REGEX.sub(lambda i: i.group(1) + " ", name)
   name = re.sub(u"Ё", u"Е", name)
   
   return name.strip()
 
-def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user, db_password, dry_run, quiet):
+def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user, db_password, do_changes, quiet):
   #Fetch data
   if not quiet: print "Fetching data"
 
@@ -74,8 +79,6 @@ def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, d
   cladrDB.close()
   osmDB.close()
 
-  
-  updater = APIUpdater(api_user, api_password, dry_run, quiet, __version__)  
   log = Logger(options.logs_path, city_cladr_code)
   if not options.quiet:
     print "Comparing"
@@ -107,10 +110,10 @@ if options.city_osm_id == None or options.city_cladr_code == None:
       print "Processing city #%s (%s)" % (cladr, osm_id)
     
     try:
-      process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
+      process(str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
     except Exception as ex:
       print "Died in city #%s (%s)" % (cladr, osm_id)
       print ex
 
 else:
-  process(options.api_user.decode('utf-8'), options.api_password.decode('utf-8'), options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
+  process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
