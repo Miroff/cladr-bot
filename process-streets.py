@@ -13,7 +13,7 @@ from updater_api import APIUpdater
 from updater_osc import OSCUpdater
 from logger import Logger
 
-__version__ = u"2.0.3"
+__version__ = u"2.0.4"
 
 parser = OptionParser(usage="%prog [options]", version="%prog " + __version__)
 parser.add_option("-D", "--database", dest="db_name", help="PostgreSQL databse name", default="osm")
@@ -75,7 +75,7 @@ def process(api_user, api_password, city_polygon_id, city_cladr_code, db_host, d
   osmDB.close()
 
   
-  updater = APIUpdater(api_user, api_password, dry_run, quiet)  
+  updater = APIUpdater(api_user, api_password, dry_run, quiet, __version__)  
   log = Logger(options.logs_path, city_cladr_code)
   if not options.quiet:
     print "Comparing"

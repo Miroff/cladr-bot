@@ -5,12 +5,12 @@
 
 import OsmApi
 
-COMMENT_STRING = u"КЛАДР-бот v2.0.3"
+COMMENT_STRING = u"КЛАДР-бот v%s"
 XAPI_URL = "api.openstreetmap.org"
 CHUNK_SIZE = 25
 
 class APIUpdater:
-  def __init__(self, user, password, dry_run, quiet):
+  def __init__(self, user, password, dry_run, quiet, version):
     self.api = OsmApi.OsmApi(username = user.decode("utf-8"), password = password.decode("utf-8"))
     self.password = password
     self.user = user
@@ -18,10 +18,12 @@ class APIUpdater:
     self.ways = {}
     self.dry_run = dry_run
     self.quiet = quiet
+    
+    self.comment = COMMENT_STRING % version
 
   def complete(self):
     self.dump()
-    
+
     if len(self.data) <= 0:
       print "No data to be saved"
       self.data = []       
@@ -33,7 +35,7 @@ class APIUpdater:
         print "Saving data"
 
       api = OsmApi.OsmApi(username = self.user.decode("utf-8"), password = self.password.decode("utf-8"))
-      api.ChangesetCreate({u"comment": COMMENT_STRING})
+      api.ChangesetCreate({u"comment": self.comment})
     
       for way in self.data:
         api.WayUpdate(way)
