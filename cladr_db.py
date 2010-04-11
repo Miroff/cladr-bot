@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pgdb
+import re
 
 CHUNK_SIZE = 1000
 
@@ -37,6 +38,10 @@ get_cladr_streets_query = """
 SELECT code, name, type, postcode, okatd FROM cladr WHERE code_prefix = '%s' AND actuality = '00' AND status = '99'
 """
 
+get_area_query = """
+select name, type, postcode, okatd from cladr where code = '%s' AND actuality='00'
+"""
+
 class CladrDB:
   def __init__(self, host, port, database, user, password, quiet):
     self.data = []
@@ -44,6 +49,40 @@ class CladrDB:
     self.count = 0
     self.quiet = quiet
     
+  def query_hierarchy(self, cladr_code):
+    match = re.search('^(\d{2})(\d{3})(\d{3})(\d{3})\d{2}$', cladr_code)
+    region = match.group(1)
+    district = match.group(2)
+    city = match.group(3)
+    area = match.group(4)
+    
+    result = [];
+    if region != '00':
+      result += self.get_area_info("%s00000000000" % region)
+
+    if district != '000':
+      result += self.get_area_info("%s%s00000000" % (region, district))
+
+    if city != '000':
+      result += self.get_area_info("%s%s%s00000" % (region, district, city))
+
+    if area != '000':
+      result += self.get_area_info("%s%s%s%s00" % (region, district, city, area))
+    
+    return result
+    
+  def get_area_info(self, cladr_code):
+    cursor = self.connection.cursor()
+    cursor.execute(get_area_query % pgdb.escape_string(cladr_code))
+    
+    result = [];
+
+    for area in cursor.fetchall():
+      result.append(area[0] + " " + area[1])
+
+    cursor.close()
+    return result
+
   def recreate(self):
     if not self.quiet:
       print "Recreate database"
@@ -122,7 +161,7 @@ class CladrDB:
       print "%s rows inserted" % self.count
     self.connection.commit()
     self.close()
-
+    
   def close(self):
     self.connection.close()  
    

@@ -76,10 +76,7 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
   (cladr_by_name, cladr_by_code) = cladrDB.load_data(prepare_name, city_cladr_code)
   (osm_data, osm_by_code) = osmDB.load_data(prepare_name, city_polygon_id)
 
-  cladrDB.close()
-  osmDB.close()
-
-  log = Logger(options.logs_path, city_cladr_code)
+  log = Logger(cladrDB, options.logs_path, city_cladr_code)
   if not options.quiet:
     print "Comparing"
   for osm in osm_data:
@@ -100,6 +97,8 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
     
   updater.complete()
   log.close()
+  cladrDB.close()
+  osmDB.close()
 
 if options.city_osm_id == None or options.city_cladr_code == None:
   if not options.quiet:
