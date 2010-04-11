@@ -48,7 +48,7 @@ class OSMDB:
       if code not in osm_by_code:
         osm_by_code[code] = []
 
-      data = self.compact(prepare_name(street[0]), street[0], code, street[3])
+      data = self.compact(prepare_name(street[0]), street[0], code, street[3], street[4], street[5], street[6])
       osm_by_code[code].append(data)
       osm_data.append(data)
     return (osm_data, osm_by_code)

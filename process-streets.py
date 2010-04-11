@@ -65,6 +65,18 @@ def prepare_name(name):
   name = re.sub(u"Ё", u"Е", name)
   
   return name.strip()
+  
+def changed(osm, cladr):
+  if osm['cladr:code'] != cladr['cladr:code'] and osm['cladr:code'] == None:
+    return True
+  if osm['cladr:name'] != cladr['cladr:name'] and osm['cladr:name'] == None:
+    return True
+  if osm['cladr:suffix'] != cladr['cladr:suffix'] and osm['cladr:suffix'] == None:
+    return True
+  if osm['addr:postcode'] != cladr['addr:postcode'] and cladr['addr:postcode'] != '' and osm['addr:postcode'] == None:
+    return True
+    
+  return False
 
 def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user, db_password, do_changes, quiet):
   #Fetch data
@@ -82,10 +94,11 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
   for osm in osm_data:
     if osm['cladr:code'] != None:
       if osm['cladr:code'] in cladr_by_code: 
-        #Match by CODE
-        updater.update(osm['osm_id'], cladr_by_code[osm['cladr:code']])
+        if changed(osm, cladr_by_code[osm['cladr:code']]):
+          updater.update(osm['osm_id'], cladr_by_code[osm['cladr:code']])
     elif osm['key'] in cladr_by_name:
-      updater.update(osm['osm_id'], cladr_by_name[osm['key']])
+      if changed(osm, cladr_by_name[osm['key']]):
+        updater.update(osm['osm_id'], cladr_by_name[osm['key']])
     else:
       log.missing_in_cladr(osm)
 

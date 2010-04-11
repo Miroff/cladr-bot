@@ -33,8 +33,8 @@
 #node,way   addr:interpolation  text  linear 
 
 node,way   cladr:code   text         linear
-#node,way   cladr:name   text         linear #Наименование НП
-#node,way   cladr:suffix text         linear #Статусная часть названия НП
+node,way   cladr:name   text         linear #Наименование НП
+node,way   cladr:suffix text         linear #Статусная часть названия НП
 node,way   cladr:note   text         linear
 #node,way   addr:country text         linear #RU (страна)
 #node,way   addr:region  text         linear #регион
