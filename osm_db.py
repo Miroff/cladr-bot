@@ -4,7 +4,7 @@
 import pgdb
 
 query = """
-SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id FROM osm_polygon city, osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND city.way_valid AND ST_Within(road.way, city.way)
+SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id, road."cladr:name", road."cladr:suffix", road."addr:postcode" FROM osm_polygon city, osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND city.way_valid AND ST_Within(road.way, city.way)
 """
 
 query_all_cities = """
@@ -20,12 +20,15 @@ class OSMDB:
     self.count = 0
     self.quiet = quiet
 
-  def compact(self, key, name, cladr_code, osm_id): 
+  def compact(self, key, name, cladr_code, osm_id, cladr_name, cladr_suffix, postcode): 
     return {
         'key': key, 
         'name': name, 
         'cladr:code': cladr_code, 
         'osm_id': osm_id,
+        'cladr:name': cladr_name,
+        'cladr:suffix': cladr_suffix,
+        'addr:postcode': postcode,
      } 
 
   def load_data(self, prepare_name, key):
