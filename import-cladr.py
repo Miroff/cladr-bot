@@ -61,7 +61,7 @@ for rec in dbf.Dbf(cladr_dbf):
         code=rec['CODE'].decode("CP866"), 
         code_prefix=rec['CODE'][0:8].decode("CP866"), 
         code_suffix=rec['CODE'][8:11].decode("CP866"), 
-        actuality=rec['CODE'][15:17].decode("CP866"), 
+        actuality=rec['CODE'][11:13].decode("CP866"), 
         name=rec['NAME'].decode("CP866"), 
         typename=names[rec['SOCR']], 
         postcode=rec['INDEX'].decode("CP866"), 
