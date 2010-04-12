@@ -14,10 +14,10 @@ SELECT city.osm_id AS osm_id, point."cladr:code" AS "cladr:code" FROM osm_polygo
 """
 
 query_oktmo_okato_settlements = """
-SELECT p.osm_id, c.code
-FROM osm_polygon p 
-  LEFT JOIN cladr c ON okatd = okato_code AND status <> '99' AND c.name = p.name
-WHERE okato_code IS NOT NULL AND c.code IS NOT NULL;
+SELECT s.polygon_osm_id AS osm_id, c.code
+FROM settlement s 
+  LEFT JOIN cladr c ON okatd = okato AND status <> '99' AND c.name = s.name
+WHERE okato IS NOT NULL AND polygon_osm_id IS NOT NULL AND c.code IS NOT NULL;
 """
 
 
