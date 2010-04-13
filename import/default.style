@@ -40,7 +40,7 @@ node,way   cladr:note   text         linear
 #node,way   addr:region  text         linear #регион
 #node,way   addr:distict text         linear #район
 node,way   addr:postcode text        linear #почтовый индекс (если присутсвует в КЛАДР) 
-
+node,way  okato_code    text         polygon
 #node,way   admin_level  text         linear
 #node,way   aerialway    text         linear
 #node,way   aeroway      text         polygon
