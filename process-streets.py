@@ -138,10 +138,10 @@ elif options.source_set == 'oktmo-okato' :
       print "Processing city #%s (%s)" % (cladr, osm_id)
     
     try:
-      process(str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
+      process(str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
     except Exception as ex:
       print "Died in city #%s (%s)" % (cladr, osm_id)
       print ex
   
 elif options.city_osm_id != None and options.city_cladr_code != None:
-  process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.dry_run, options.quiet)
+  process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
