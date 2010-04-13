@@ -10,7 +10,7 @@ SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id, road."cladr
 query_all_cities = """
 SELECT city.osm_id AS osm_id, city."cladr:code" AS "cladr:code" FROM osm_polygon city WHERE city.place IN ('city', 'town', 'village', 'hamlet') AND city."cladr:code" <> ''
 UNION
-SELECT city.osm_id AS osm_id, point."cladr:code" AS "cladr:code" FROM osm_polygon city, osm_point point WHERE point."cladr:code" <> '' AND ST_Within(point.way, city.way) AND point.place IN ('city', 'town', 'village', 'hamlet') AND city.place IN ('city', 'town', 'village', 'hamlet') AND point.name = city.place_name
+SELECT city.osm_id AS osm_id, point."cladr:code" AS "cladr:code" FROM osm_polygon city, osm_point point WHERE point."cladr:code" <> '' AND ST_Within(point.way, city.way) AND point.place IN ('city', 'town', 'village', 'hamlet') AND city.place IN ('city', 'town', 'village', 'hamlet') AND (point.name = city.place_name OR point.name = city.name)
 """
 
 query_oktmo_okato_settlements = """
