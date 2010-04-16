@@ -38,8 +38,12 @@ get_cladr_streets_query = """
 SELECT code, name, type, postcode, okatd FROM cladr WHERE code_prefix = '%s' AND actuality = '00' AND status = '99'
 """
 
+get_area_info_query = """
+SELECT code, name, type, postcode, okatd FROM cladr WHERE code = '%s'
+"""
+
 get_area_query = """
-select name, type, postcode, okatd from cladr where code = '%s' AND actuality='00'
+SELECT code, name, type, postcode, okatd FROM cladr WHERE actuality='00' AND status != '99' ORDER BY code ASC
 """
 
 class CladrDB:
@@ -73,12 +77,33 @@ class CladrDB:
     
   def get_area_info(self, cladr_code):
     cursor = self.connection.cursor()
-    cursor.execute(get_area_query % pgdb.escape_string(cladr_code))
+    cursor.execute(get_area_info_query % pgdb.escape_string(cladr_code))
     
     result = [];
 
     for area in cursor.fetchall():
-      result.append(area[0] + " " + area[1])
+      result.append(area[1] + " " + area[2])
+
+    cursor.close()
+    return result
+
+  def get_info(self):
+    cursor = self.connection.cursor()
+    cursor.execute(get_area_query)
+    
+    result = [];
+
+    for area in cursor.fetchall():     
+      data = {}
+      data['name'] = area[1] + " " + area[2]
+      match = re.search('^(\d{2})(\d{3})(\d{3})(\d{3})\d{2}$', area[0])
+      data['region'] = match.group(1)
+      data['district'] = match.group(2)
+      data['city'] = match.group(3)
+      data['area'] = match.group(4)
+      data['code'] = area[0]
+
+      result.append(data)
 
     cursor.close()
     return result

@@ -97,7 +97,7 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
       if osm['cladr:code'] in cladr_by_code: 
         if changed(osm, cladr_by_code[osm['cladr:code']]):
           updater.update(osm['osm_id'], cladr_by_code[osm['cladr:code']])
-        osm_by_code[osm['cladr:code']] = [osm]
+      osm_by_code[osm['cladr:code']] = [osm]
     elif osm['key'] in cladr_by_name:
       if changed(osm, cladr_by_name[osm['key']]):
         updater.update(osm['osm_id'], cladr_by_name[osm['key']])
