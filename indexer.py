@@ -155,7 +155,7 @@ def save_items(title, items, files, fh):
 files = read_files(options.logs_path)
 regions = load_cladr_items(options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.quiet)
 
-shutil.rmtree("%s/index" % options.logs_path)
+shutil.rmtree("%s/index" % options.logs_path, True)
 os.mkdir("%s/index" % options.logs_path)
 
 index = open("%s/index.html" % (options.logs_path), 'w')
