@@ -7,6 +7,7 @@ import os.path
 import pgdb
 import re
 import OsmApi
+import traceback
 from cladr_db import CladrDB
 from osm_db import OSMDB
 from updater_api import APIUpdater
@@ -125,8 +126,12 @@ if options.source_set == 'streets' :
     if not options.quiet:
       print "Processing city #%s (%s)" % (cladr, osm_id)
     
-    process(str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
-
+    try:
+      process(str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
+    except Exception as ex:
+      print "Died in city #%s (%s)" % (cladr, osm_id)
+      traceback.print_exc()
+      
 elif options.source_set == 'oktmo-okato' :
   if not options.quiet:
     print "Processing oktmo-okato cities"
@@ -139,7 +144,7 @@ elif options.source_set == 'oktmo-okato' :
       process(str(osm_id), cladr, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
     except Exception as ex:
       print "Died in city #%s (%s)" % (cladr, osm_id)
-      print ex
+      traceback.print_exc()
   
 elif options.city_osm_id != None and options.city_cladr_code != None:
   process(options.city_osm_id, options.city_cladr_code, options.db_host, options.db_port, options.db_name, options.db_user, options.db_password, options.do_changes, options.quiet)
