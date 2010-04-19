@@ -14,5 +14,5 @@ class DummyUpdater:
 
   def update(self, osm_id, cladr_data):
     if not self.quiet:
-      print "Processing %s" % osm_id
+      print "Found modified street %s (%s) %s" % (osm_id, cladr_data['cladr:code'], cladr_data['name'])
     

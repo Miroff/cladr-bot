@@ -170,7 +170,8 @@ class CladrDB:
         cladr_by_name[key] = data
 
     for street in skip_streets:
-      del cladr_by_name[street]
+      if (street in cladr_by_name):
+        del cladr_by_name[street]
 
     return (cladr_by_name, cladr_by_code)
     
