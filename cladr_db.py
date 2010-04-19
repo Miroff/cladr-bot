@@ -55,6 +55,10 @@ class CladrDB:
     
   def query_hierarchy(self, cladr_code):
     match = re.search('^(\d{2})(\d{3})(\d{3})(\d{3})\d{2}$', cladr_code)
+
+    if not match:
+      return []
+      
     region = match.group(1)
     district = match.group(2)
     city = match.group(3)
