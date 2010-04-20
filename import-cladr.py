@@ -51,7 +51,8 @@ for rec in dbf.Dbf(streets_dbf):
         typename=names[rec['SOCR']], 
         postcode=rec['INDEX'].decode("CP866"), 
         okatd=rec['OCATD'].decode("CP866"), 
-        status=u'99')
+        status=u'99',
+        obj_class=u'S')
 
 if not options.quiet:
   print "Inserting territories"
@@ -66,7 +67,8 @@ for rec in dbf.Dbf(cladr_dbf):
         typename=names[rec['SOCR']], 
         postcode=rec['INDEX'].decode("CP866"), 
         okatd=rec['OCATD'].decode("CP866"), 
-        status=rec['STATUS'].decode("CP866"))
+        status=rec['STATUS'].decode("CP866"),
+        obj_class=u'B')
         
 sqlDB.complete()
 

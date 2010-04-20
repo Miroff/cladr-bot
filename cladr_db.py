@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# :noTabs=true:indentSize=2:
 
 import pgdb
 import re
 
-CHUNK_SIZE = 1000
+CHUNK_SIZE = 10000
 
 drop_table_sql = """
 DROP TABLE IF EXISTS cladr;
@@ -21,17 +22,21 @@ CREATE TABLE cladr (
   code_suffix char(4),
   actuality char(2),
   postcode varchar(6),
-  okatd varchar(11)
+  okatd varchar(11),
+  obj_class char(1),
+  is_actual boolean
 );
 
 CREATE INDEX cladr_code_prefix_idx ON cladr (code_prefix, actuality);
 CREATE UNIQUE INDEX cladr_code_idx ON cladr (code);
 CREATE INDEX cladr_okatd_idx ON cladr (okatd);
 CREATE INDEX cladr_actuality_idx ON cladr (actuality);
+CREATE INDEX cladr_obj_class  ON cladr (obj_class);
+CREATE INDEX cladr_is_actual  ON cladr (is_actual);
 """
 
 insert_sql = """
-INSERT INTO cladr VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO cladr VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 """
 
 get_cladr_streets_query = """
@@ -120,8 +125,10 @@ class CladrDB:
     cursor.execute(create_table_sql)
     cursor.close()
   
-  def insert(self, code, status, name, typename, code_prefix, code_suffix, actuality, postcode, okatd):
-    self.data.append((code, status, name, typename, code_prefix, code_suffix, actuality, postcode, okatd))
+  def insert(self, code, status, name, typename, code_prefix, code_suffix, actuality, postcode, okatd, obj_class):
+    if len(okatd) == 11 and okatd[8:11] == '000':
+      okatd = okatd[0:8];
+    self.data.append((code, status, name, typename, code_prefix, code_suffix, actuality, postcode, okatd, obj_class, actuality == u'00'))
     self.count += 1
     if self.count % CHUNK_SIZE == 0:
       self.dump();
