@@ -47,17 +47,15 @@ if not options.quiet:
 #Read short names expansion table
 abbrevs = {}
 for line in open('abbrev.txt','r').readlines():
-  line = line.decode("utf-8")
+  line = line.decode("utf-8").upper()
 
   abbrevs[line.split('=')[0]] = line.split('=')[1].rstrip()
   
 def prepare_name(name):
-  name = name.decode("utf-8")
+  name = name.decode("utf-8").upper()
   for k, v in abbrevs.iteritems():
     name = name.replace(k, v)
     
-  name = name.upper()
-  
   words = name.split(" ")
   words.sort()
   
