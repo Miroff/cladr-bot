@@ -169,7 +169,12 @@ index.close()
 
 for region in regions.values():
   fh = open("%s/index/%s.html" % (options.logs_path, region['code']), 'w')
-  fh.write(HEADER % (region['code'], region['name'], datetime.now()))
+
+  name = region['name']
+  if region['code'] in files:
+    name = """<a href "../%s.html">%s</a>""" % (region['code'], region['name'])
+
+  fh.write(HEADER % (region['code'], name, datetime.now()))
 
   save_items('Города', region['cities'], files, fh)
   save_items('Поселения', region['areas'], files, fh)
@@ -180,7 +185,7 @@ for region in regions.values():
     dh = open("%s/index/%s.html" % (options.logs_path, district['code']), 'w')
     dh.write(HEADER % (district['code'], district['name'], datetime.now()))
 
-    save_items('Города', district['cities'], files, dh)
+    save_items('Города', district['cities'], files, dh)    
     save_items('Поселения', district['areas'], files, dh)
 
     dh.write(FOOTER)
