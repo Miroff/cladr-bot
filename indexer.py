@@ -56,6 +56,7 @@ parser.add_option("-P", "--password", dest="db_password", help="PostgreSQL datab
 parser.add_option("-H", "--host", dest="db_host", help="PostgreSQL databse host", default="localhost")
 parser.add_option("-p", "--port", dest="db_port", help="PostgreSQL databse port", type="int", default="-1")
 parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False, help="don't print status messages to stdout")
+parser.add_option("-u", "--base-url", dest="base_url", default="logs", help="Base URL of web server interface")
 parser.add_option("-l", "--logs-path", dest="logs_path", help="Path where log files will be stored", default="./logs")
 
 (options, args) = parser.parse_args()
@@ -145,7 +146,7 @@ def save_items(title, items, files, fh):
     fh.write(TABLE_BEGIN % title)   
     for item in sorted(items.values(), lambda a, b: cmp(a['code'], b['code'])):
       if item['code'] in files:
-        fh.write("""<tr><td>%s</td><td><a href="../%s.html">%s</a></td></tr>\n""" % (item['code'], item['code'], item['name']))
+        fh.write("""<tr><td>%s</td><td><a href="%s/%s.html">%s</a></td></tr>\n""" % (item['code'], options.base_url, item['code'], item['name']))
       else:
         fh.write("<tr><td>%s</td><td>%s</td></tr>\n" % (item['code'], item['name']))
     fh.write(TABLE_END)
@@ -162,7 +163,7 @@ index = open("%s/index.html" % (options.logs_path), 'w')
 index.write(HEADER % (' Russia', 'Russia', datetime.now()))
 index.write(TABLE_BEGIN % "Regions")
 for region in sorted(regions.values(), lambda a, b: cmp(a['code'], b['code'])):
-  index.write("<tr><td>%s</td><td><a href=\"index/%s.html\">%s</a></td>" % (region['code'], region['code'], region['name']))
+  index.write("<tr><td>%s</td><td><a href=\"%s/index/%s.html\">%s</a></td>" % (region['code'], options.base_url, region['code'], region['name']))
 index.write(TABLE_END)
 index.write(FOOTER)
 index.close()
@@ -172,7 +173,7 @@ for region in regions.values():
 
   name = region['name']
   if region['code'] in files:
-    name = """<a href "../%s.html">%s</a>""" % (region['code'], region['name'])
+    name = """<a href "%s/%s.html">%s</a>""" % (options.base_url, region['code'], region['name'])
 
   fh.write(HEADER % (region['code'], name, datetime.now()))
 
@@ -181,7 +182,7 @@ for region in regions.values():
 
   fh.write(TABLE_BEGIN % "Районы")
   for district in sorted(region['districts'].values(), lambda a, b: cmp(a['code'], b['code'])):
-    fh.write("""<tr><td>%s</td><td><a href="%s.html">%s</a></td></tr>\n""" % (district['code'], district['code'], district['name']))
+    fh.write("""<tr><td>%s</td><td><a href="%s/%s.html">%s</a></td></tr>\n""" % (district['code'], options.base_url, district['code'], district['name']))
     dh = open("%s/index/%s.html" % (options.logs_path, district['code']), 'w')
     dh.write(HEADER % (district['code'], district['name'], datetime.now()))
 
