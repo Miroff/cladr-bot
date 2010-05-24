@@ -173,7 +173,7 @@ for region in regions.values():
 
   name = region['name']
   if region['code'] in files:
-    name = """<a href "%s/%s.html">%s</a>""" % (options.base_url, region['code'], region['name'])
+    name = """<a href="%s/%s.html">%s</a>""" % (options.base_url, region['code'], region['name'])
 
   fh.write(HEADER % (region['code'], name, datetime.now()))
 
