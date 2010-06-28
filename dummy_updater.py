@@ -1,18 +1,27 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#Do-nothing updater
+"""Do-nothing updater
+"""
 
 class DummyUpdater:
-  def __init__(self, quiet):
-    self.quiet = quiet
+    """Simple implementation of Updater interface
+    """
     
-  def complete(self):
-    if not self.quiet:
-      print "Complete updating"
+    def __init__(self, quiet):
+        self.quiet = quiet
     
+    def complete(self):
+        """Updating is complete
+        """
+        if not self.quiet:
+            print "Complete"
+        
 
-  def update(self, osm_id, cladr_data):
-    if not self.quiet:
-      print "Found modified street %s (%s) %s" % (osm_id, cladr_data['cladr:code'], cladr_data['name'])
-    
+    def update(self, osm_id, cladr_data):
+        """Item can be updated
+        """
+        if not self.quiet:
+            print "Found modified street #%s (%s) %s" % \
+                (cladr_data['cladr:code'], osm_id, cladr_data['name'])
+        
