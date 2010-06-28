@@ -96,11 +96,17 @@ def process(city_polygon_id, city_cladr_code, db_host, db_port, db_name, db_user
       if osm['cladr:code'] in cladr_by_code: 
         if changed(osm, cladr_by_code[osm['cladr:code']]):
           updater.update(osm['osm_id'], cladr_by_code[osm['cladr:code']])
-      osm_by_code[osm['cladr:code']] = [osm]
+      if osm['cladr:code'] in osm_by_code:
+        osm_by_code[osm['cladr:code']].append(osm)
+      else:
+        osm_by_code[osm['cladr:code']] = [osm]
     elif osm['key'] in cladr_by_name:
       if changed(osm, cladr_by_name[osm['key']]):
         updater.update(osm['osm_id'], cladr_by_name[osm['key']])
-      osm_by_code[cladr_by_name[osm['key']]['cladr:code']] = [osm]
+      if cladr_by_name[osm['key']]['cladr:code'] in osm_by_code:
+        osm_by_code[cladr_by_name[osm['key']]['cladr:code']].append(osm)
+      else:
+        osm_by_code[cladr_by_name[osm['key']]['cladr:code']] = [osm]
     else:
       log.missing_in_cladr(osm)
 
