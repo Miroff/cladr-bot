@@ -175,22 +175,22 @@ def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, updater, \
     logger.new_file(city_cladr_code)
 
     for osm in osm_data:
-        if osm['cladr:code'] != None:
-            if osm['cladr:code'] in cladr_by_code: 
-                if changed(osm, cladr_by_code[osm['cladr:code']]):
-                    updater.update(osm['osm_id'], \
-                        cladr_by_code[osm['cladr:code']])
-            if osm['cladr:code'] in osm_by_code:
-                osm_by_code[osm['cladr:code']].append(osm)
-            else:
-                osm_by_code[osm['cladr:code']] = [osm]
-        elif osm['key'] in cladr_by_name:
-            if changed(osm, cladr_by_name[osm['key']]):
-                updater.update(osm['osm_id'], cladr_by_name[osm['key']])
-            if cladr_by_name[osm['key']]['cladr:code'] in osm_by_code:
-                osm_by_code[cladr_by_name[osm['key']]['cladr:code']].append(osm)
-            else:
-                osm_by_code[cladr_by_name[osm['key']]['cladr:code']] = [osm]
+        osm_code = osm['cladr:code']
+        osm_key = osm['key']
+        
+        if osm_code != None:
+            if osm_code in cladr_by_code and \
+                changed(osm, cladr_by_code[osm_code]):
+                updater.update(osm['osm_id'], cladr_by_code[osm_code])
+            
+            osm_by_code.setdefault(osm_code, []).append(osm)
+        elif osm_key in cladr_by_name:
+            cladr = cladr_by_name[osm_key]['cladr:code']
+
+            if changed(osm, cladr_by_name[osm_key]):
+                updater.update(osm['osm_id'], cladr_by_name[osm_key])
+                
+            osm_by_code.setdefault(osm_code, []).append(osm)
         else:
             logger.missing_in_cladr(osm)
 
