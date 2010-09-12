@@ -22,6 +22,20 @@ FROM settlement s
 WHERE polygon_osm_id IS NOT NULL AND s.kladr IS NOT NULL;
 """
 
+SQL_SAVE_CLADR_BOT_RESULT = """
+INSERT INTO cladr_bot_result (osm_id, code) VALUES (%s, %s);
+"""
+
+SQL_DROP_RESULT_TABLE = """
+DROP TABLE cladr_bot_result;
+"""
+
+SQL_CREATE_RESULT_TABLE = """
+CREATE TABLE cladr_bot_result (
+  osm_id integer, 
+  code varchar(17)
+);"""
+
 class OSMDB:
     """OSM database API
     """
@@ -31,6 +45,10 @@ class OSMDB:
                 database=name, user=user, password=password)
         self.count = 0
         self.quiet = quiet
+        cursor = self.connection.cursor()
+        cursor.execute(SQL_DROP_RESULT_TABLE)
+        cursor.execute(SQL_CREATE_RESULT_TABLE)
+        cursor.close()
 
     def load_data(self, prepare_name, key):
         """Load streets in specified polygon
@@ -40,7 +58,6 @@ class OSMDB:
         cursor.execute(QUERY % pgdb.escape_string(str(key)))
         
         osm_data = []
-        osm_by_code = {}
         
         for street in cursor.fetchall():
             if street[2] != None:
@@ -48,8 +65,6 @@ class OSMDB:
             else:
                 cladr_code = street[1]
                 
-            osm_by_code.setdefault(cladr_code, [])
-
             data = {
                 'key': prepare_name(street[0]), 
                 'name': street[0], 
@@ -60,10 +75,9 @@ class OSMDB:
                 'addr:postcode': street[6],
             } 
 
-            osm_by_code[cladr_code].append(data)
             osm_data.append(data)
 
-        return (osm_data, osm_by_code)
+        return osm_data
 
     def query_all_cities(self):
         """Fetch list of all settlements with place tags
@@ -90,7 +104,14 @@ class OSMDB:
             cities.append((city[0], city[1]))
         
         return cities
-
+        
+    def save_cladr_bot_result(self, data):
+        cursor = self.connection.cursor()
+        for row in data:
+            sql = SQL_SAVE_CLADR_BOT_RESULT % (pgdb.escape_string(str(row['osm_id'])), pgdb.escape_string(str(row['cladr:code'])))
+            cursor.execute(sql)
+        cursor.close()
+        self.connection.commit()
 
     def close(self):
         """Close database connection

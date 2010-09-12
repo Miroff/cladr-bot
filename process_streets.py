@@ -17,6 +17,7 @@ from osm_db import OSMDB
 from updater_api import APIUpdater
 from dummy_updater import DummyUpdater
 from logger import Logger
+from logger_db import LoggerDB
 
 __version__ = u"2.0.5"
 REGEX = ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ)\s+'
@@ -110,7 +111,7 @@ def read_options():
         password=options.db_password, \
         quiet=options.quiet)
 
-    logger = Logger(cladr_db, options.logs_path)
+    logger = [Logger(cladr_db, options.logs_path), LoggerDB(osm_db)]
     ABBREVS.update(read_abbrevs())
     
     return (osm_db, cladr_db, updater, logger, options.source_set, \
@@ -170,9 +171,11 @@ def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, updater, \
 
     (cladr_by_name, cladr_by_code) = cladr_db.load_data( \
         expand_abbrevs, city_cladr_code)
-    (osm_data, osm_by_code) = osm_db.load_data(expand_abbrevs, city_polygon_id)
+    osm_data = osm_db.load_data(expand_abbrevs, city_polygon_id)
+    
+    osm_by_code = {}
 
-    logger.new_file(city_cladr_code)
+    map(lambda log: log.new_file(city_cladr_code), logger)
 
     for osm in osm_data:
         osm_code = osm['cladr:code']
@@ -192,15 +195,15 @@ def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, updater, \
                 
             osm_by_code.setdefault(osm_code, []).append(osm)
         else:
-            logger.missing_in_cladr(osm)
+            map(lambda log: log.missing_in_cladr(osm), logger)
 
     for code in cladr_by_code:
         if code in osm_by_code:
-            logger.found_in_osm(cladr_by_code[code], osm_by_code[code])
+            map(lambda log: log.found_in_osm(cladr_by_code[code], osm_by_code[code]), logger)
         else:
-            logger.missing_in_osm(cladr_by_code[code])
-        
-    logger.close()
+            map(lambda log: log.missing_in_osm(cladr_by_code[code]), logger)
+
+    map(lambda log: log.close(), logger)
 
 def main():
     """Application entery point
@@ -235,17 +238,6 @@ def main():
                 print "Died in city #%s (%s)" % (cladr, osm_id)
                 traceback.print_exc()
         
-#    elif options.city_osm_id != None and options.city_cladr_code != None:
-#        process( \
-#            city_polygon_id=options.city_osm_id, 
-#            city_cladr_code=options.city_cladr_code, \
-#            db_host=options.db_host, \
-#            db_port=options.db_port, \
-#            db_name=options.db_name, \
-#            db_user=options.db_user, \
-#            db_password=options.db_password, \
-#            do_changes=options.do_changes, \
-#            quiet=options.quiet)
     updater.complete()
     cladr_db.close()
     osm_db.close()
