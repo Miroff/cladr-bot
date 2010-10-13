@@ -8,10 +8,6 @@ OpenStreetMap.
 Usage: python process_streets.py --help
 """
 
-#TODO: group streets by status part in the log
-#TODO: Check addr:street on the buildings 
-#TODO: Add JOSM link to the log
-
 from optparse import OptionParser
 import re
 import traceback
