@@ -34,7 +34,7 @@ INSERT INTO cladr_bot_result (osm_id, code) VALUES (%s, %s);
 """
 
 SQL_DROP_RESULT_TABLE = """
-DROP TABLE cladr_bot_result;
+DROP TABLE IF EXISTS cladr_bot_result;
 """
 
 SQL_CREATE_RESULT_TABLE = """
