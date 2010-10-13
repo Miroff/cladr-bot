@@ -8,6 +8,11 @@ OpenStreetMap.
 Usage: python process_streets.py --help
 """
 
+#TODO: use kladr:note instead of cladr:code
+#TODO: group streets by status part in the log
+#TODO: Check addr:street on the buildings 
+#TODO: Add JOSM link to the log
+
 
 from optparse import OptionParser
 import re
