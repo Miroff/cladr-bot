@@ -36,6 +36,7 @@ node,way   cladr:code   text         linear
 node,way   cladr:name   text         linear #Наименование НП
 node,way   cladr:suffix text         linear #Статусная часть названия НП
 node,way   cladr:note   text         linear
+node,way   kladr:user   text         linear
 #node,way   addr:country text         linear #RU (страна)
 #node,way   addr:region  text         linear #регион
 #node,way   addr:distict text         linear #район
@@ -62,7 +63,7 @@ node,way   highway      text         linear
 #node,way   historic     text         polygon
 #node,way   horse        text         linear
 #node,way   junction     text         linear
-#node,way   landuse      text         polygon
+node,way   landuse      text         polygon
 #node,way   layer        text         linear
 #node,way   learning     text         linear
 #node,way   leisure      text         polygon

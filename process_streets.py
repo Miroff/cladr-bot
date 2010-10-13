@@ -8,18 +8,15 @@ OpenStreetMap.
 Usage: python process_streets.py --help
 """
 
-#TODO: use kladr:note instead of cladr:code
 #TODO: group streets by status part in the log
 #TODO: Check addr:street on the buildings 
 #TODO: Add JOSM link to the log
-
 
 from optparse import OptionParser
 import re
 import traceback
 from cladr_db import CladrDB
 from osm_db import OSMDB
-from updater_api import APIUpdater
 from dummy_updater import DummyUpdater
 from logger import Logger
 from logger_db import LoggerDB
@@ -63,22 +60,11 @@ def read_options():
     parser.add_option("-o", "--cladr", \
         dest="city_cladr_code", \
         help="CLADR code of city")
-    parser.add_option("-k", "--api-user", \
-        dest="api_user", \
-        help="OSM API User")
-    parser.add_option("-j", "--api-password", \
-        dest="api_password", \
-        help=",OSM API password")
     parser.add_option("-q", "--quiet", \
         action="store_true", \
         dest="quiet", \
         default=False, \
         help="don't print status messages to stdout")
-    parser.add_option("-d", "--do-changes", \
-        action="store_true", \
-        dest="do_changes", \
-        default=False, \
-        help="Upload changes to OSM")
     parser.add_option("-l", "--logs-path", \
         dest="logs_path", \
         help="Path where log files will be stored", \
@@ -89,16 +75,6 @@ def read_options():
         default="streets")
 
     (options, args) = parser.parse_args()
-    
-    if options.api_user != None:
-        updater = APIUpdater( \
-            user=options.api_user.decode('utf-8'), \
-            password=options.api_password.decode('utf-8'), \
-            do_changes=options.do_changes, \
-            quiet=options.quiet, \
-            version=__version__)
-    else:
-        updater = DummyUpdater(options.quiet)
     
     cladr_db = CladrDB(
         host=options.db_host, \
@@ -119,14 +95,12 @@ def read_options():
     logger = [Logger(cladr_db, options.logs_path), LoggerDB(osm_db)]
     ABBREVS.update(read_abbrevs())
     
-    return (osm_db, cladr_db, updater, logger, options.source_set, \
-        options.quiet)
+    return (osm_db, cladr_db, logger, options.source_set, options.quiet)
 
     
 def read_abbrevs():
     """Return readed short names expansion table
-    """
-    
+    """    
     abbrevs = {}
     with open('abbrev.txt','r') as fhx:
         for line in fhx:
@@ -152,26 +126,8 @@ def expand_abbrevs(name):
     
     return name.strip()
     
-def changed(osm, cladr):
-    """Return true if there is significant difference between 
-    OSM and CLADR records
-    """
-    if osm['cladr:code'] != cladr['cladr:code'] and osm['cladr:code'] == None:
-        return True
-    if osm['cladr:name'] != cladr['cladr:name'] and osm['cladr:name'] == None:
-        return True
-    if osm['cladr:suffix'] != cladr['cladr:suffix'] and \
-        osm['cladr:suffix'] == None:
-        return True
-    if osm['addr:postcode'] != cladr['addr:postcode'] and \
-        cladr['addr:postcode'] != '' and osm['addr:postcode'] == None:
-        return True
-        
-    return False
-
-def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, updater, \
-    logger):
-    """Main function of object procesing
+def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, logger):
+    """Match CLADR and OSM streets by name and kladr:user tags
     """
 
     (cladr_by_name, cladr_by_code) = cladr_db.load_data( \
@@ -183,22 +139,14 @@ def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, updater, \
     map(lambda log: log.new_file(city_cladr_code), logger)
 
     for osm in osm_data:
-        osm_code = osm['cladr:code']
+        osm_kladr_code = osm['kladr:user']
         osm_key = osm['key']
-        
-        if osm_code != None:
-            if osm_code in cladr_by_code and \
-                changed(osm, cladr_by_code[osm_code]):
-                updater.update(osm['osm_id'], cladr_by_code[osm_code])
-            
-            osm_by_code.setdefault(osm_code, []).append(osm)
+
+        if osm_kladr_code != None:
+            osm_by_code.setdefault(osm_kladr_code, []).append(osm)
         elif osm_key in cladr_by_name:
             cladr = cladr_by_name[osm_key]['cladr:code']
-
-            if changed(osm, cladr_by_name[osm_key]):
-                updater.update(osm['osm_id'], cladr_by_name[osm_key])
-                
-            osm_by_code.setdefault(osm_code, []).append(osm)
+            osm_by_code.setdefault(cladr, []).append(osm)
         else:
             map(lambda log: log.missing_in_cladr(osm), logger)
 
@@ -213,7 +161,7 @@ def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, updater, \
 def main():
     """Application entery point
     """
-    (osm_db, cladr_db, updater, logger, source_set, quiet) = read_options()
+    (osm_db, cladr_db, logger, source_set, quiet) = read_options()
     
     if source_set == 'streets' :
         if not quiet:
@@ -224,7 +172,7 @@ def main():
                 print "Processing city #%s (%s)" % (cladr, osm_id)
         
             try:    
-                process(str(osm_id), cladr, osm_db, cladr_db, updater, logger)
+                process(str(osm_id), cladr, osm_db, cladr_db, logger)
             except Exception:
                 print "Died in city #%s (%s)" % (cladr, osm_id)
                 traceback.print_exc()
@@ -238,12 +186,11 @@ def main():
                 print "Processing city #%s (%s)" % (cladr, osm_id)
         
             try:
-                process(str(osm_id), cladr, osm_db, cladr_db, updater, logger)
+                process(str(osm_id), cladr, osm_db, cladr_db, logger)
             except Exception:
                 print "Died in city #%s (%s)" % (cladr, osm_id)
                 traceback.print_exc()
         
-    updater.complete()
     cladr_db.close()
     osm_db.close()
 

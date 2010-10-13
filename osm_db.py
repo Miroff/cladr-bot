@@ -6,8 +6,15 @@
 
 import pgdb
 
-QUERY = """
-SELECT road.name, road."cladr:code", road."cladr:note", road.osm_id, road."cladr:name", road."cladr:suffix", road."addr:postcode" FROM osm_polygon city, osm_line road WHERE city.osm_id = %s AND road.name <> '' AND road.highway in ('trunk','primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') AND city.way_valid AND ST_Within(road.way, city.way)
+QUERY_STREETS = """
+SELECT road.name, road."kladr:user", road.osm_id 
+FROM osm_polygon city, osm_line road 
+WHERE city.osm_id = %s 
+    AND road.name <> '' 
+    AND (road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') 
+        OR road.landuse <> '')
+    AND city.way_valid 
+    AND ST_Within(road.way, city.way)
 """
 
 QUERY_ALL_CITIES = """
@@ -55,24 +62,16 @@ class OSMDB:
         """
         cursor = self.connection.cursor()
         
-        cursor.execute(QUERY % pgdb.escape_string(str(key)))
+        cursor.execute(QUERY_STREETS % pgdb.escape_string(str(key)))
         
         osm_data = []
         
         for street in cursor.fetchall():
-            if street[2] != None:
-                cladr_code = street[2]
-            else:
-                cladr_code = street[1]
-                
             data = {
                 'key': prepare_name(street[0]), 
                 'name': street[0], 
-                'cladr:code': cladr_code, 
-                'osm_id': street[3],
-                'cladr:name': street[4],
-                'cladr:suffix': street[5],
-                'addr:postcode': street[6],
+                'kladr:user': street[1], 
+                'osm_id': street[2],
             } 
 
             osm_data.append(data)

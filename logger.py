@@ -107,7 +107,7 @@ class Logger:
             self.file.write(MISSING_IN_CLADR_BEGIN)
             for osm in self.missing_cladr:
                 self.file.write(ROW % ("missing", "Missing in CLADR", \
-                    osm['cladr:code'], OSM_LINK % (osm['osm_id'], \
+                    '', OSM_LINK % (osm['osm_id'], \
                     osm['name'])))
             
             self.file.write(MISSING_IN_CLADR_END)
@@ -131,6 +131,4 @@ class Logger:
                 
             
         self.file.write(FOOTER)
-                    
         self.file.close()
-
