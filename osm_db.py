@@ -11,10 +11,19 @@ SELECT road.name, road."kladr:user", road.osm_id
 FROM osm_polygon city, osm_line road 
 WHERE city.osm_id = %s 
     AND road.name <> '' 
-    AND (road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') 
-        OR road.landuse <> '')
+    AND road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') 
     AND city.way_valid 
     AND ST_Within(road.way, city.way)
+"""
+
+QUERY_AREAS = """
+SELECT area.name, area."kladr:user", area.osm_id 
+FROM osm_polygon city, osm_polygon area
+WHERE city.osm_id = %s 
+    AND area.name <> '' 
+    AND area.landuse <> ''
+    AND city.way_valid 
+    AND ST_Within(area.way, city.way)
 """
 
 QUERY_ALL_CITIES = """
@@ -60,9 +69,13 @@ class OSMDB:
     def load_data(self, prepare_name, key):
         """Load streets in specified polygon
         """
+
+        return self.load_street(QUERY_STREETS, prepare_name, key) + self.load_street(QUERY_AREAS, prepare_name, key, True)
+        
+    def load_street(self, sql, prepare_name, key, omit_in_logs=False):
         cursor = self.connection.cursor()
         
-        cursor.execute(QUERY_STREETS % pgdb.escape_string(str(key)))
+        cursor.execute(sql % pgdb.escape_string(str(key)))
         
         osm_data = []
         
@@ -72,6 +85,7 @@ class OSMDB:
                 'name': street[0], 
                 'kladr:user': street[1], 
                 'osm_id': street[2],
+                'omit_in_logs': omit_in_logs,
             } 
 
             osm_data.append(data)

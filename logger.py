@@ -74,7 +74,8 @@ class Logger:
     def missing_in_cladr(self, osm):
         """Item was found in OSM but missed in CLADR
         """
-        self.missing_cladr.append(osm)
+        if not osm['omit_in_logs']:
+            self.missing_cladr.append(osm)
         
     def missing_in_osm(self, cladr):
         """Item was found in CLADR but missed in OSM
