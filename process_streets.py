@@ -22,6 +22,8 @@ REGEX = ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ)\s+'
 NUMBER_IN_NAMES_REGEX = re.compile(REGEX, re.UNICODE)
 ABBREVS = {}
 
+#TODO: Remove unused CLI parameters
+
 def read_options():
     """Main function
     """
