@@ -11,7 +11,7 @@ SELECT road.name, road."kladr:user", road.osm_id
 FROM osm_polygon city, osm_line road 
 WHERE city.osm_id = %s 
     AND road.name <> '' 
-    AND road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified') 
+    AND road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian') 
     AND city.way_valid 
     AND ST_Within(road.way, city.way)
 """
@@ -21,7 +21,7 @@ SELECT area.name, area."kladr:user", area.osm_id
 FROM osm_polygon city, osm_polygon area
 WHERE city.osm_id = %s 
     AND area.name <> '' 
-    AND area.landuse <> ''
+    AND (area.landuse <> '' OR area.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian') )
     AND city.way_valid 
     AND ST_Within(area.way, city.way)
 """
