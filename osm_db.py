@@ -22,7 +22,8 @@ FROM osm_polygon city, osm_polygon area
 WHERE city.osm_id = %s 
     AND area.name <> '' 
     AND (area.landuse <> '' OR area.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian') )
-    AND city.way_valid 
+    AND city.way_valid
+    AND area.way_valid
     AND ST_Within(area.way, city.way)
 """
 
