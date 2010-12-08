@@ -26,7 +26,9 @@ REGEX = ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ)\s+'
 NUMBER_IN_NAMES_REGEX = re.compile(REGEX, re.UNICODE)
 ABBREVS = {}
 
-#TODO: Remove unused CLI parameters
+#TODO: Log exceptions
+#TODO: Logging config
+#TODO: Extract CladrBot to class
 
 def read_options():
     """Main function

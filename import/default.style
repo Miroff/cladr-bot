@@ -40,6 +40,7 @@ node,way   kladr:user   text         linear
 #node,way   addr:country text         linear #RU (страна)
 #node,way   addr:region  text         linear #регион
 #node,way   addr:distict text         linear #район
+node,way   addr:street   text        polygon
 node,way   addr:postcode text        linear #почтовый индекс (если присутсвует в КЛАДР) 
 node,way  okato_code    text         polygon
 #node,way   admin_level  text         linear
@@ -51,7 +52,7 @@ node,way  okato_code    text         polygon
 #node,way   bicycle      text         nocache
 #node,way   bridge       text         linear
 #node,way   boundary     text         linear
-#node,way   building     text         polygon
+node,way   building     text         polygon
 #node	     capital      text         linear
 #node,way   construction text         linear
 #node,way   cutting      text         linear

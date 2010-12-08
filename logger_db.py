@@ -81,7 +81,7 @@ class DatabaseLogger:
             street = Street(settlement_id, names)
             
             for osm in streets:
-                obj = StreetObj(osm.type, osm.osm_id, 'name', osm.name)
+                obj = StreetObj(osm.type, osm.osm_id, osm.tag, osm.name)
                 street.objects.append(obj)
                 
                 if is_matched:
