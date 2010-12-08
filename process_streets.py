@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# :noTabs=true:indentSize=4:
+
 """
 Checks all streets in specified OSM database and check it against 
 CLADR database. Optionally this tool can upload Cladr codes to 
@@ -12,12 +14,14 @@ from optparse import OptionParser
 import re
 import traceback
 from cladr_db import CladrDB
-from osm_db import OSMDB
-from dummy_updater import DummyUpdater
-from logger import Logger
-from logger_db import LoggerDB
+from osm_db import OsmDB
+import logging
+from logger_db import DatabaseLogger
 
-__version__ = u"2.0.5"
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+__version__ = u"3.0.0"
 REGEX = ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ)\s+'
 NUMBER_IN_NAMES_REGEX = re.compile(REGEX, re.UNICODE)
 ABBREVS = {}
@@ -54,47 +58,27 @@ def read_options():
         default="-1")
     parser.add_option("-c", "--polygon", \
         dest="city_osm_id", \
-        help="OSM ID of city polygon")
+        type="int", \
+        help="OSM ID of city polygon, optional. If not set settlements table will be used")
     parser.add_option("-o", "--cladr", \
         dest="city_cladr_code", \
-        help="CLADR code of city")
-    parser.add_option("-q", "--quiet", \
-        action="store_true", \
-        dest="quiet", \
-        default=False, \
-        help="don't print status messages to stdout")
-    parser.add_option("-l", "--logs-path", \
-        dest="logs_path", \
-        help="Path where log files will be stored", \
-        default="./logs")
-    parser.add_option("-s", '--source-set', \
-        dest="source_set", \
-        help="Whitch populated areas will be processed: streets|oktmo-okato",
-        default="streets")
+        type="str", \
+        help="CLADR code of city, optional. If not set settlements table will be used")
 
     (options, args) = parser.parse_args()
+
+    engine = create_engine('postgresql://%s:%s@%s:%d/%s' % (options.db_user, options.db_password, options.db_host, options.db_port, options.db_name))
+
+    cladr_db = CladrDB(engine)
+    osm_db = OsmDB(engine)
+
+    result_listeners = [DatabaseLogger(engine)]
     
-    cladr_db = CladrDB(
-        host=options.db_host, \
-        port=options.db_port, \
-        name=options.db_name, \
-        user=options.db_user, \
-        password=options.db_password, \
-        quiet=options.quiet)
-
-    osm_db = OSMDB(
-        host=options.db_host, \
-        port=options.db_port, \
-        name=options.db_name, \
-        user=options.db_user, \
-        password=options.db_password, \
-        quiet=options.quiet)
-
-    logger = [Logger(cladr_db, options.logs_path), LoggerDB(osm_db)]
+    map(lambda l: l.clear(), result_listeners)
+    
     ABBREVS.update(read_abbrevs())
     
-    return (osm_db, cladr_db, logger, options.source_set, options.quiet)
-
+    return (osm_db, cladr_db, result_listeners, options.city_osm_id, options.city_cladr_code)
     
 def read_abbrevs():
     """Return readed short names expansion table
@@ -103,94 +87,86 @@ def read_abbrevs():
     with open('abbrev.txt','r') as fhx:
         for line in fhx:
             line = line.decode("utf-8").upper()
-            abbrevs[line.split('=')[0]] = line.split('=')[1].rstrip()
+            abbrevs[line.split('=')[0]] = line.split('=')[1].rstrip() + " "
     
     return abbrevs
     
 def expand_abbrevs(name):
     """Replace abbreviations in specified name to full words.
     """
-    name = name.decode("utf-8").upper()
+    key = name.upper()
     for abbrev, word in ABBREVS.iteritems():
-        name = name.replace(abbrev, word)
-        
-    words = name.split(" ")
+        key = re.sub(abbrev, word, key)
+    
+    #Remove (.*) from the street name
+    key = re.sub(r'\(.*?(:?\)|$)', '', key)
+    words = key.split(" ")
     words.sort()
     
-    name = " ".join(words)    
+    key = " ".join(words)    
     
-    name = NUMBER_IN_NAMES_REGEX.sub(lambda i: i.group(1) + " ", name)
-    name = re.sub(u"Ё", u"Е", name)
+    key = NUMBER_IN_NAMES_REGEX.sub(lambda i: i.group(1) + " ", key)
+    key = re.sub(u"Ё", u"Е", key)
+    key = re.sub(u"[\"'«»№]", u" ", key)
+    key = re.sub(u"\s+", u" ", key).strip()
+
+    logging.debug("Street name %s was converted to %s" % (name, key))
     
-    return name.strip()
+    return key
     
-def process(city_polygon_id, city_cladr_code, osm_db, cladr_db, logger):
+def process(settlement_id, osm_id, cladr, osm_db, cladr_db, result_listeners):
     """Match CLADR and OSM streets by name and kladr:user tags
     """
 
-    (cladr_by_name, cladr_by_code) = cladr_db.load_data( \
-        expand_abbrevs, city_cladr_code)
-    osm_data = osm_db.load_data(expand_abbrevs, city_polygon_id)
+    (cladr_by_name, cladr_by_code) = cladr_db.load_data(expand_abbrevs, cladr)
+    osm_data = osm_db.load_data(expand_abbrevs, osm_id)
     
-    osm_by_code = {}
-
-    map(lambda log: log.new_file(city_cladr_code), logger)
-
+    matched_streets = {}
+    missed_streets = {}
+    
     for osm in osm_data:
-        osm_kladr_code = osm['kladr:user']
-        osm_key = osm['key']
-
-        if osm_kladr_code != None:
-            osm_by_code.setdefault(osm_kladr_code, []).append(osm)
-        elif osm_key in cladr_by_name:
-            cladr = cladr_by_name[osm_key]['cladr:code']
-            osm_by_code.setdefault(cladr, []).append(osm)
+        if osm.kladr_user in cladr_by_code:
+            #Found by kladr:user
+            logging.debug("Found '%s' (#%s) by kladr:user" % (osm.name, osm.kladr_user))
+            matched_streets.setdefault(osm.kladr_user, []).append(osm)
+        elif osm.key in cladr_by_name:
+            #Found by name
+            for cladr in cladr_by_name[osm.key]:
+                logging.debug("Found '%s' (#%s) by name" % (osm.name, cladr.code))
+                matched_streets.setdefault(cladr.code, []).append(osm)
         else:
-            map(lambda log: log.missing_in_cladr(osm), logger)
+            #Not found
+            logging.debug("Missed '%s'" % (osm.name))
+            missed_streets.setdefault(osm.key, []).append(osm)
+    
+    map(lambda l: l.save_found_streets(settlement_id, matched_streets), result_listeners)
+    map(lambda l: l.save_missed_streets(settlement_id, missed_streets), result_listeners)
 
-    for code in cladr_by_code:
-        if code in osm_by_code:
-            map(lambda log: log.found_in_osm(cladr_by_code[code], osm_by_code[code]), logger)
-        else:
-            map(lambda log: log.missing_in_osm(cladr_by_code[code]), logger)
-
-    map(lambda log: log.close(), logger)
+    logging.info("Processing complete: %d/%d (found/missed)" % (len(matched_streets), len(missed_streets)))
 
 def main():
     """Application entery point
     """
-    (osm_db, cladr_db, logger, source_set, quiet) = read_options()
     
-    if source_set == 'streets' :
-        if not quiet:
-            print "Processing all cities in region"
+    (osm_db, cladr_db, result_listeners, osm_id, cladr) = read_options()
+
+    if osm_id and cladr:
+        logging.info("Processing city #%s (%d)" % (cladr, osm_id))
         
-        for (osm_id, cladr) in osm_db.query_all_cities():
-            if not quiet:
-                print "Processing city #%s (%s)" % (cladr, osm_id)
+        process(0, str(osm_id), cladr, osm_db, cladr_db, result_listeners)
         
-            try:    
-                process(str(osm_id), cladr, osm_db, cladr_db, logger)
-            except Exception:
-                print "Died in city #%s (%s)" % (cladr, osm_id)
-                traceback.print_exc()
-            
-    elif source_set == 'oktmo-okato' :
-        if not quiet:
-            print "Processing oktmo-okato cities"
+    else:
+        logging.info("Processing settlements table")
     
-        for (osm_id, cladr) in osm_db.query_oktmo_okato_settlements():
-            if not quiet:
-                print "Processing city #%s (%s)" % (cladr, osm_id)
+        for settlement in osm_db.query_settlements():
+            logging.info("Processing city #%s (%s)" % (str(settlement.polygon_osm_id), str(settlement.kladr)))
         
             try:
-                process(str(osm_id), cladr, osm_db, cladr_db, logger)
+                process(settlement.id, str(settlement.polygon_osm_id), str(settlement.kladr), osm_db, cladr_db, result_listeners)
             except Exception:
-                print "Died in city #%s (%s)" % (cladr, osm_id)
+                logging.error("Died in city #%s (%s)" % (str(settlement.polygon_osm_id), str(settlement.kladr)))
                 traceback.print_exc()
         
-    cladr_db.close()
-    osm_db.close()
-
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()
