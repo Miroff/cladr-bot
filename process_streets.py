@@ -109,11 +109,11 @@ def expand_abbrevs(name):
     key = re.sub(u"[\"'«»№]", u" ", key)
 
     #Change name parts order
-    words = key.split("\s+")
+    words = key.split(r" ")
     words.sort()
-    key = " ".join(words)    
+    key = " ".join(words)
 
-    key = re.sub(u"\s+", u" ", key)
+    key = re.sub(u"\s+", u" ", key).strip()
 
     logging.debug("Street name %s was converted to %s" % (name, key))
     
@@ -173,5 +173,5 @@ def main():
                 traceback.print_exc()
         
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     main()

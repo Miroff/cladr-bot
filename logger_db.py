@@ -11,6 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import *
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects import postgresql
+import operator
 
 
 Base = declarative_base()
@@ -88,9 +89,9 @@ class DatabaseLogger:
                 
                 if save_matches:
                     street.match = StreetMatch(cladr)
-
+                    
             #Skip missed landuse=*
-            if save_matches or reduce(lambda result, osm: result or not osm.is_area, streets):
+            if save_matches or reduce(operator.or_, map(lambda osm: not osm.is_area, streets)):
                 results.append(street)
             
         session.add_all(results)
