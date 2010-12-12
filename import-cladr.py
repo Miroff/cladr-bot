@@ -77,7 +77,7 @@ for rec in dbf.Dbf(cladr_dbf):
         postcode=rec['INDEX'].decode("CP866"), 
         okatd=rec['OCATD'].decode("CP866"), 
         status=u'99',
-        obj_class=u'S')
+        obj_class=u'B')
     db.insert(cladr)
 
 db.flush()
