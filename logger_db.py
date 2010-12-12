@@ -10,6 +10,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import *
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects import postgresql
+
 
 Base = declarative_base()
 class Street(Base):
@@ -17,13 +19,13 @@ class Street(Base):
 
     id = Column(Integer, Sequence('street_id_seq'), primary_key=True)
     settlement_id = Column(BigInteger)
-    name = Column(String)
+    names = Column(postgresql.ARRAY(String))
     objects = relationship("StreetObj", backref="street")
     match = relationship("StreetMatch", uselist=False, backref="street")
 
-    def __init__(self, settlement_id, name):
+    def __init__(self, settlement_id, names):
         self.settlement_id = settlement_id
-        self.name= name
+        self.names = names
 
 class StreetObj(Base):
     __tablename__ = "street_obj"
@@ -76,7 +78,7 @@ class DatabaseLogger:
         
         results = []
         for cladr, streets in data.items():
-            names = ";".join(set(map(lambda osm: osm.name, streets)))
+            names = set(map(lambda osm: osm.name, streets))
             
             street = Street(settlement_id, names)
             
