@@ -102,15 +102,18 @@ def expand_abbrevs(name):
     
     #Remove (.*) from the street name
     key = re.sub(r'\(.*?(:?\)|$)', '', key)
-    words = key.split(" ")
-    words.sort()
     
-    key = " ".join(words)    
-    
+    #Unify names
     key = NUMBER_IN_NAMES_REGEX.sub(lambda i: i.group(1) + " ", key)
     key = re.sub(u"Ё", u"Е", key)
     key = re.sub(u"[\"'«»№]", u" ", key)
-    key = re.sub(u"\s+", u" ", key).strip()
+
+    #Change name parts order
+    words = key.split("\s+")
+    words.sort()
+    key = " ".join(words)    
+
+    key = re.sub(u"\s+", u" ", key)
 
     logging.debug("Street name %s was converted to %s" % (name, key))
     
@@ -170,5 +173,5 @@ def main():
                 traceback.print_exc()
         
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     main()
