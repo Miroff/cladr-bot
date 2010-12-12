@@ -90,7 +90,7 @@ class DatabaseLogger:
                     street.match = StreetMatch(cladr)
 
             #Skip missed landuse=*
-            if save_matches or not reduce(lambda result, osm: result or osm.is_area, streets):
+            if save_matches or reduce(lambda result, osm: result or not osm.is_area, streets):
                 results.append(street)
             
         session.add_all(results)
