@@ -10,21 +10,21 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import *
 
 QUERY_STREETS = """
-SELECT road.osm_id, road.name, road."kladr:user", 'line' as type, 'name' as tag
+SELECT road.osm_id, road.name, road."kladr:user", 'line' as type, 'name' as tag, false as is_area
 FROM osm_polygon city, osm_line road 
 WHERE city.osm_id = :osm_id
     AND road.name <> '' 
     AND road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian') 
     AND ST_Within(road.way, city.way)
 UNION
-SELECT area.osm_id, area.name, area."kladr:user", 'polygon' as type, 'name' as tag
+SELECT area.osm_id, area.name, area."kladr:user", 'polygon' as type, 'name' as tag, true as is_area
 FROM osm_polygon city, osm_polygon area
 WHERE city.osm_id = :osm_id
     AND area.name <> '' 
     AND (area.landuse <> '' OR area.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian') )
     AND ST_Within(area.way, city.way)
 UNION
-SELECT area.osm_id, area."addr:street" as name, null, 'polygon' as type, 'addr:street' as tag
+SELECT area.osm_id, area."addr:street" as name, null, 'polygon' as type, 'addr:street' as tag, false as is_area
 FROM osm_polygon city, osm_polygon area
 WHERE city.osm_id = :osm_id
     AND area.building <> '' 
@@ -46,6 +46,7 @@ class OsmRecord(Base):
     kladr_user = Column('kladr:user', String)
     type = Column(String)
     tag = Column(String)
+    is_area = Column(Boolean)
     
 class Settlement(Base):
     __tablename__ = "settlement"

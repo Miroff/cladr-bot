@@ -68,12 +68,12 @@ class DatabaseLogger:
         
 
     def save_found_streets(self, settlement_id, found):
-        self.save_streets(settlement_id, found, True)
+        self.save_streets(settlement_id, found, save_matches=True)
         
     def save_missed_streets(self, settlement_id, missed):
-        self.save_streets(settlement_id, missed, False)
+        self.save_streets(settlement_id, missed, save_matches=False)
 
-    def save_streets(self, settlement_id, data, is_matched):
+    def save_streets(self, settlement_id, data, save_matches):
         session = self.Session()
         
         results = []
@@ -82,14 +82,16 @@ class DatabaseLogger:
             
             street = Street(settlement_id, names)
             
-            for osm in streets:
+            for osm in streets:                
                 obj = StreetObj(osm.type, osm.osm_id, osm.tag, osm.name)
                 street.objects.append(obj)
                 
-                if is_matched:
+                if save_matches:
                     street.match = StreetMatch(cladr)
-            
-            results.append(street)
+
+            #Skip missed landuse=*
+            if save_matches or not reduce(lambda result, osm: result or osm.is_area, streets):
+                results.append(street)
             
         session.add_all(results)
         session.commit()
