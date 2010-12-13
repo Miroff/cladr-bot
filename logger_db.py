@@ -13,6 +13,18 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects import postgresql
 import operator
 
+import re
+
+RE_STATUS_PARTS = re.compile( 
+    ur'(?:\s+|^)(улица|ул\.|проспект|шоссе|переулок|пер\.|проезд|аллея|линия|микрорайон)(?:\s+|$)',
+    re.I)
+
+RE_NUM_ST = re.compile(
+    ur'^(\d+(?:\-й|\-я|\-е))\s+.*$',
+    re.I
+    )
+
+
 
 Base = declarative_base()
 class Street(Base):
@@ -21,12 +33,44 @@ class Street(Base):
     id = Column(Integer, Sequence('street_id_seq'), primary_key=True)
     settlement_id = Column(BigInteger)
     names = Column(postgresql.ARRAY(String))
+    sort_name = Column(String)
     objects = relationship("StreetObj", backref="street")
     match = relationship("StreetMatch", uselist=False, backref="street")
 
     def __init__(self, settlement_id, names):
         self.settlement_id = settlement_id
         self.names = names
+
+        # sort_name
+        maxlen = 0
+        lname = None
+        for n in self.names:
+            if len(n) > maxlen:
+                lname = n
+                maxlen = len(n)
+
+        status_candidate = RE_STATUS_PARTS.findall(lname)
+
+        tname = lname
+        if len(status_candidate) > 0:
+            # TODO: multiple status parts detection
+            status = status_candidate[0]
+            tname = tname.replace(status, '').strip()
+        else:
+            status = None
+
+        num = None
+        m = RE_NUM_ST.match(lname)
+        if m:
+            num = m.group(1)
+            tname = tname.replace(num, '').strip()
+
+        self.sort_name = tname
+        if num:
+            self.sort_name = self.sort_name + ' ' + num
+        if status:
+            self.sort_name = self.sort_name + ', ' + status
+
 
 class StreetObj(Base):
     __tablename__ = "street_obj"
