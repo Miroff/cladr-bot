@@ -14,7 +14,8 @@ SELECT road.osm_id, road.name, road."kladr:user", 'line' as type, 'name' as tag,
 FROM osm_polygon city, osm_line road 
 WHERE city.osm_id = :osm_id
     AND road.name <> '' 
-    AND road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian') 
+    AND road.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian')
+    AND ST_IsValid(city.way)
     AND ST_Within(road.way, city.way)
 UNION
 SELECT area.osm_id, area.name, area."kladr:user", 'polygon' as type, 'name' as tag, true as is_area
@@ -22,6 +23,8 @@ FROM osm_polygon city, osm_polygon area
 WHERE city.osm_id = :osm_id
     AND area.name <> '' 
     AND (area.landuse <> '' OR area.highway in ('trunk', 'primary', 'secondary', 'tertiary', 'residential', 'service', 'living_street', 'unclassified', 'pedestrian') )
+    AND ST_IsValid(city.way)
+    AND ST_IsValid(area.way)
     AND ST_Within(area.way, city.way)
 UNION
 SELECT area.osm_id, area."addr:street" as name, null, 'polygon' as type, 'addr:street' as tag, false as is_area
@@ -29,6 +32,8 @@ FROM osm_polygon city, osm_polygon area
 WHERE city.osm_id = :osm_id
     AND area.building <> '' 
     AND (area."addr:street" <> '')
+    AND ST_IsValid(city.way)
+    AND ST_IsValid(area.way)
     AND ST_Within(area.way, city.way)
 """
 
