@@ -26,6 +26,7 @@ class CladrRecord(Base):
         self.okatd = okatd
         self.status = status
         self.obj_class = obj_class
+        self.full_code = code
         
         if len(self.okatd) == 11 and self.okatd[8:11] == '000':
             self.okatd = self.okatd[0:8]
@@ -41,6 +42,7 @@ class CladrRecord(Base):
     name = Column(String(256))
     type = Column(String(256))
     is_actual = Column(Boolean)
+    full_code = Column(String(17))
 
 class CladrDB:
     """CLADR database API
