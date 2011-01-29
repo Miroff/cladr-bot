@@ -22,7 +22,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 __version__ = u"3.0.0"
-REGEX = ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ)(:?\s+|$)'
+REGEX = ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ|Х)(:?\s+|$)'
 NUMBER_IN_NAMES_REGEX = re.compile(REGEX, re.UNICODE)
 ABBREVS = {}
 
