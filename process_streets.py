@@ -108,6 +108,9 @@ def expand_abbrevs(name):
     key = re.sub(u"Ё", u"Е", key)
     key = re.sub(u"[\"'«»№]", u" ", key)
 
+    # remove "им" prefix
+    key = re.sub(ur'^ИМ[\.\s]+', u' ', key)
+
     #Change name parts order
     words = key.split(r" ")
     words.sort()
@@ -122,7 +125,7 @@ def expand_abbrevs(name):
 def process(settlement_id, osm_id, cladr, osm_db, cladr_db, result_listeners):
     """Match CLADR and OSM streets by name and kladr:user tags
     """
-
+    
     (cladr_by_name, cladr_by_code) = cladr_db.load_data(expand_abbrevs, cladr)
     osm_data = osm_db.load_data(expand_abbrevs, osm_id)
     
