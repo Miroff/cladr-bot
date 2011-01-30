@@ -15,12 +15,25 @@ CREATE TABLE street_browser (
   CONSTRAINT street_browser_pk PRIMARY KEY (src, id)
 );
 
+DROP TABLE IF EXISTS street_browser_stat;
+
+CREATE TABLE street_browser_stat (
+  settlement_src varchar(10),
+  settlement_id bigint,
+  n_total int,
+  n_match int,
+  n_mismatch int,
+  n_skip int,
+  n_none int,
+  CONSTRAINT street_browser_stat_pk PRIMARY KEY (settlement_src, settlement_id)
+);
+
 $MD_INIT$ */
+
+BEGIN TRANSACTION;
 
 --@: log street browser
 --@: level +
-BEGIN TRANSACTION;
-
 TRUNCATE street_browser;
 
 --@: log match + mismatch
@@ -41,13 +54,26 @@ FROM settlement s INNER JOIN cladr cp ON cp.code = s.kladr
   LEFT JOIN street_kladr_match sk ON sk.kladr_id = cc.code
 WHERE sk.kladr_id IS NULL;
 
---@ log related objects
+--@: log related objects
 UPDATE street_browser SET related = tmp.related
 FROM (
   SELECT street_id, array_agg(cls || '/' || osm_id) AS related 
   FROM street_obj GROUP BY street_id
 ) tmp
 WHERE tmp.street_id = id;
+--@: level -
+
+--@: log street browser stat
+TRUNCATE street_browser_stat;
+
+INSERT INTO street_browser_stat(settlement_src, settlement_id, n_total,n_match, n_mismatch, n_none, n_skip)
+SELECT settlement_src, settlement_id,
+       COALESCE(SUM(1),0) AS n_total,
+       COALESCE(SUM(CASE WHEN status = 'match' THEN 1 ELSE 0 END),0) AS n_match,
+       COALESCE(SUM(CASE WHEN status = 'mismatch' THEN 1 ELSE 0 END),0) AS n_match,
+       COALESCE(SUM(CASE WHEN status = 'none' THEN 1 ELSE 0 END), 0) AS n_match,
+       0 AS n_skip
+FROM street_browser
+GROUP BY settlement_src, settlement_id;
 
 COMMIT;
---@: level -
