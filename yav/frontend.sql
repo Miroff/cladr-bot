@@ -37,7 +37,7 @@ SELECT 'kladr', cc.code, 'osm', s.id, cc.name || ', ' || lower(cc.type), NULL,
   'none',
   cc.code
 FROM settlement s INNER JOIN cladr cp ON cp.code = s.kladr
-  INNER JOIN cladr cc ON cc.code_prefix = cp.code_prefix || cp.code_suffix
+  INNER JOIN cladr cc ON cc.code_prefix = cp.code_prefix || cp.code_suffix AND cc.actuality = '00'
   LEFT JOIN street_kladr_match sk ON sk.kladr_id = cc.code
 WHERE sk.kladr_id IS NULL;
 
