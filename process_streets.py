@@ -133,7 +133,7 @@ def process(settlement_id, osm_id, cladr, osm_db, cladr_db, result_listeners):
     missed_streets = {}
     
     for osm in osm_data:
-        if osm.kladr_user in cladr_by_code:
+        if osm.kladr_user and int(osm.kladr_user) in cladr_by_code:
             #Found by kladr:user
             logging.debug("Found '%s' (#%s) by kladr:user" % (osm.name, osm.kladr_user))
             matched_streets.setdefault(osm.kladr_user, []).append(osm)
@@ -141,7 +141,7 @@ def process(settlement_id, osm_id, cladr, osm_db, cladr_db, result_listeners):
             #Found by name
             for cladr in cladr_by_name[osm.key]:
                 logging.debug("Found '%s' (#%s) by name" % (osm.name, cladr.code))
-                matched_streets.setdefault(cladr.code, []).append(osm)
+                matched_streets.setdefault(int(cladr.code), []).append(osm)
         else:
             #Not found
             logging.debug("Missed '%s'" % (osm.name))
@@ -170,7 +170,7 @@ def main():
             logging.info("Processing city #%s (%s)" % (str(settlement.polygon_osm_id), str(settlement.kladr)))
         
             try:
-                process(settlement.id, str(settlement.polygon_osm_id), str(settlement.kladr), osm_db, cladr_db, result_listeners)
+                process(settlement.id, str(settlement.polygon_osm_id), '%013d' % (settlement.kladr), osm_db, cladr_db, result_listeners)
             except Exception:
                 logging.error("Died in city #%s (%s)" % (str(settlement.polygon_osm_id), str(settlement.kladr)))
                 traceback.print_exc()
