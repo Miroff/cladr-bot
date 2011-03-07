@@ -30,8 +30,6 @@ CREATE TABLE street_browser_stat (
 
 $MD_INIT$ */
 
-BEGIN TRANSACTION;
-
 --@: log street browser
 --@: level +
 TRUNCATE street_browser;
@@ -75,5 +73,3 @@ SELECT settlement_src, settlement_id,
        0 AS n_skip
 FROM street_browser
 GROUP BY settlement_src, settlement_id;
-
-COMMIT;
