@@ -170,7 +170,7 @@ def main():
             logging.info("Processing city #%s (%s)" % (str(settlement.polygon_osm_id), str(settlement.kladr)))
         
             try:
-                process(settlement.id, str(settlement.polygon_osm_id), '%013d' % (settlement.kladr), osm_db, cladr_db, result_listeners)
+                process(settlement.id, str(settlement.polygon_osm_id), '%013s' % (settlement.kladr), osm_db, cladr_db, result_listeners)
             except Exception:
                 logging.error("Died in city #%s (%s)" % (str(settlement.polygon_osm_id), str(settlement.kladr)))
                 traceback.print_exc()

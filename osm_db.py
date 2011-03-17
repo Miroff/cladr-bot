@@ -38,7 +38,7 @@ WHERE city.osm_id = :osm_id
 """
 
 QUERY_OKTMO_OKATO_SETTLEMENTS = """
-SELECT s.polygon_osm_id AS osm_id, s.kladr
+SELECT s.polygon_osm_id AS osm_id, s.kladr::bigint
 FROM settlement s 
 WHERE polygon_osm_id IS NOT NULL AND s.kladr IS NOT NULL;
 """
@@ -58,7 +58,7 @@ class Settlement(Base):
 
     id = Column(Integer, primary_key=True)
     polygon_osm_id = Column(Integer)
-    kladr = Column(BigInteger)
+    kladr = Column(Unicode)
     
 class OsmDB:
     """OSM database API
