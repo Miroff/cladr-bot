@@ -63,13 +63,14 @@ class Settlement(Base):
 class OsmDB:
     """OSM database API
     """
-    def __init__(self, engine):
-        self.Session = sessionmaker(bind=engine)        
+    def __init__(self, engine=None, session=None):
+        self.engine = engine
+        self.session = session
 
     def load_data(self, prepare_key, osm_id):
         """Load streets in specified polygon
         """
-        session = self.Session()
+        session = self.session
         
         osm_data = []
         for street in session.query(OsmRecord).from_statement(QUERY_STREETS).params(osm_id=osm_id).all():
@@ -80,7 +81,7 @@ class OsmDB:
         return osm_data
 
     def query_settlements(self):
-        session = self.Session()
+        session = self.session
         
         settlements = []
         for settlement in session.query(Settlement) \
@@ -89,5 +90,4 @@ class OsmDB:
             .all():
             settlements.append(settlement)
 
-        session.close()
         return settlements

@@ -100,16 +100,15 @@ class DatabaseLogger:
     """
     Class for saving OSM - CLADR check results to the DB
     """
-    def __init__(self, engine):
-        self.Session = sessionmaker(bind=engine)  
-        Base.metadata.drop_all(engine)
-        Base.metadata.create_all(engine)
+    def __init__(self, engine, session):
+        self.session = session
+        self.engine = engine
+
     
     def clear(self):
         """Start saving of new city file
         """
-        session = self.Session()
-        session.execute("TRUNCATE TABLE street, street_obj, street_kladr_match")
+        self.session.execute("TRUNCATE TABLE street, street_obj, street_kladr_match")
         
 
     def save_found_streets(self, settlement_id, found):
@@ -119,7 +118,7 @@ class DatabaseLogger:
         self.save_streets(settlement_id, missed, save_matches=False)
 
     def save_streets(self, settlement_id, data, save_matches):
-        session = self.Session()
+        session = self.session
         
         results = []
         for cladr, streets in data.items():

@@ -47,9 +47,9 @@ class CladrRecord(Base):
 class CladrDB:
     """CLADR database API
     """
-    def __init__(self, engine):
+    def __init__(self, engine=None, session=None):
         self.engine = engine
-        self.Session = sessionmaker(bind=engine)      
+        self.session = session
         self.data = []
 
     def insert(self, cladr):
@@ -59,9 +59,8 @@ class CladrDB:
             self.flush()
         
     def flush(self):
-        session = self.Session()
-        session.add_all(self.data)
-        session.commit()
+        self.session.add_all(self.data)
+        self.session.commit()
         self.data = []
         
     def recreate(self):
@@ -77,7 +76,7 @@ class CladrDB:
         """Load CLADR records
         """
 
-        session = self.Session()
+        session = self.session
 
         by_key = {}
         by_code = {}

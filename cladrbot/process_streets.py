@@ -13,13 +13,15 @@ Usage: python process_streets.py --help
 from optparse import OptionParser
 import re
 import traceback
-from cladr_db import CladrDB
-from osm_db import OsmDB
 import logging
-from logger_db import DatabaseLogger
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from cladrbot.cladr_db import CladrDB
+from cladrbot.osm_db import OsmDB
+from cladrbot.logger_db import DatabaseLogger
+
 
 __version__ = u"3.0.0"
 REGEX = ur'(\d+)\-(Й|ГО|Я|АЯ|ИЙ|ЫЙ|ОЙ|Х)(:?\s+|$)'
@@ -74,7 +76,7 @@ def read_options():
     cladr_db = CladrDB(engine)
     osm_db = OsmDB(engine)
 
-    result_listeners = [DatabaseLogger(engine)]
+    result_listeners = []
     
     map(lambda l: l.clear(), result_listeners)
     
@@ -133,10 +135,17 @@ def process(settlement_id, osm_id, cladr, osm_db, cladr_db, result_listeners):
     missed_streets = {}
     
     for osm in osm_data:
-        if osm.kladr_user and int(osm.kladr_user) in cladr_by_code:
+
+        # 
+        kladr_user = None
+        if osm.kladr_user:
+            try: kladr_user = int(osm.kladr_user)
+            except ValueError: pass 
+            
+        if kladr_user and kladr_user in cladr_by_code:
             #Found by kladr:user
-            logging.debug("Found '%s' (#%s) by kladr:user" % (osm.name, osm.kladr_user))
-            matched_streets.setdefault(osm.kladr_user, []).append(osm)
+            logging.debug("Found '%s' (#%s) by kladr:user" % (osm.name, kladr_user))
+            matched_streets.setdefault(kladr_user, []).append(osm)
         elif osm.key in cladr_by_name:
             #Found by name
             for cladr in cladr_by_name[osm.key]:
