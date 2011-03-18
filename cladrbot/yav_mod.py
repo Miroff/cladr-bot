@@ -1,4 +1,5 @@
 from yav import ProcessorModule
+from yav.dependency import *
 from cladrbot.logger_db import Base as LoggerBase
 
 from logging import getLogger
@@ -6,6 +7,9 @@ from logging import getLogger
 class process_street(ProcessorModule):
     cls_id = 'cladrbot.process_street'
     logger = getLogger('cladrbot.process_street')
+
+    dependencies = {'process': [(Process, 'yav_settlement.settlement_kladr'),
+                                (Process, 'yav.osm2pgsql')] }
 
     def do_install(self):
         LoggerBase.metadata.create_all(self.manager.engine)
