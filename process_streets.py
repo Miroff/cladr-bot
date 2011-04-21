@@ -109,7 +109,7 @@ def expand_abbrevs(name):
     key = re.sub(u"[\"'«»№]", u" ", key)
 
     # remove "им" prefix
-    key = re.sub(ur'^ИМ[\.\s]+', u' ', key)
+    key = re.sub(ur'[^\s]ИМ[\.\s]+', u' ', key)
 
     #Change name parts order
     words = key.split(r" ")
